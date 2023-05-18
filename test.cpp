@@ -5,7 +5,8 @@
 #include "YTable.h"
 
 int main() {
-    Database *db;
-    auto* table = reinterpret_cast<YTable *>(new Table<int, int>(db, 0));
+    auto *db = new Database();
+    auto* table = reinterpret_cast<YTable *>(db->create_table<int, int>());
     table->initialize_table();
+    return 0;
 }

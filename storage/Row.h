@@ -24,6 +24,14 @@
 
 #define STRUCT_LAYOUT_X(type, name) type name;
 
+#define FIRST_KEY_TO_STRING(type, name) std::string(#name)
+
+#define REST_KEY_TO_STRING(type, name) std::string(";") + #name
+
+#define FIRST_VALUE_TO_STRING(type, name) std::string(#name)
+
+#define REST_VALUE_TO_STRING(type, name) + ";" + #name
+
 #define STRUCT_EQ_X(type, name)                                              \
   if (this->name != other.name)                                              \
     return false;
@@ -31,65 +39,47 @@
 #define STRUCT_FIELDPOS_X(type, name) name##_field,
 
 // the main macro
-#define STRUCT_KEY(name, keyfields)                                                 \
-    class name{                                                                \
+#define STRUCT_ROW(keyname, valuename, keyfields, valuefields)                                                 \
+    class keyname{                                                                \
     public:                                                                  \
         keyfields(STRUCT_LAYOUT_X, STRUCT_LAYOUT_X)                           \
-        name(){}                                                                      \
-        name(keyfields(STRUCT_PARAM_FIRST_X, STRUCT_PARAM_REST_X)) :           \
+        keyname(){}                                                                      \
+        keyname(keyfields(STRUCT_PARAM_FIRST_X, STRUCT_PARAM_REST_X)) :           \
             keyfields(STRUCT_INITLIST_FIRST_X, STRUCT_INITLIST_REST_X()){}    \
                                                                               \
-        bool operator==(name other) const {                        \
+        bool operator==(keyname other) const {                                       \
                 APPLY_X_AND_Y(keyfields, STRUCT_EQ_X)                          \
                 return true;                                                   \
             }                                                                  \
-        bool operator!=(name other) const {                        \
+        bool operator!=(keyname other) const {                                     \
                 return !operator==(other);                                     \
             }                                                                  \
-                                                                              \
-        bool is_key_equals(name other){                                        \
-            keyfields(STRUCT_EQ_X, STRUCT_EQ_X)                               \
-            return true;                                                      \
-        }                                                                     \
-        static std::size_t hash_key(name k) {                  \
-            return Hash::hash(keyfields(STRUCT_HASH_FIRST_X, STRUCT_HASH_REST_X));                                                                     \
-        }                                                                      \
-    };
-
-#define STRUCT_VALUE(name, valuefields)                                             \
-    class name{                                                              \
+                                                                                                               \
+        static std::string key_field_to_string(){                                                                           \
+            return keyfields(FIRST_KEY_TO_STRING, REST_KEY_TO_STRING);                                                                                                       \
+        }                                                                                                           \
+    };                                                                             \
+    class valuename{                                                              \
     public:                                                                  \
         valuefields(STRUCT_LAYOUT_X, STRUCT_LAYOUT_X)                         \
-        name(){}                                                                      \
-        name(valuefields(STRUCT_PARAM_FIRST_X, STRUCT_PARAM_REST_X)) :         \
+        valuename(){}                                                                      \
+        valuename(valuefields(STRUCT_PARAM_FIRST_X, STRUCT_PARAM_REST_X)) :         \
             valuefields(STRUCT_INITLIST_FIRST_X, STRUCT_INITLIST_REST_X){}  \
                                                                               \
-        bool is_value_equals(name other){                                        \
-            valuefields(STRUCT_EQ_X, STRUCT_EQ_X)                               \
-            return true;                                                      \
-        }                                                                     \
-    };
-
-//#define STRUCT_ROW(keyfields, valuefields)                                    \
-//    class Row{                                                                \
-//    private:                                                                  \
-//        keyfields(STRUCT_LAYOUT_X, STRUCT_LAYOUT_X)                           \
-//        valuefields(STRUCT_LAYOUT_X, STRUCT_LAYOUT_X)                         \
-//    public:                                                                   \
-//        Row(keyfields(STRUCT_PARAM_FIRST_X, STRUCT_PARAM_REST_X),             \
-//            valuefields(STRUCT_PARAM_FIRST_X, STRUCT_PARAM_REST_X)) :         \
-//            keyfields(STRUCT_INITLIST_FIRST_X, STRUCT_INITLIST_REST_X()),     \
-//            valuefields(STRUCT_INITLIST_FIRST_X, STRUCT_INITLIST_REST_X){}    \
-//                                                                              \
-//        bool is_key_equals(Row other){                                        \
-//            keyfields(STRUCT_EQ_X, STRUCT_EQ_X)                               \
-//            return true;                                                      \
-//        }                                                                     \
-//                                                                              \
-//        bool is_value_equals(Row other){                                      \
-//            valuefields(STRUCT_EQ_X, STRUCT_EQ_X)                             \
-//            return true;                                                      \
-//        }                                                                     \
-//                                                                              \
-//    };
+        bool operator==(valuename other) const {                                 \
+                APPLY_X_AND_Y(valuefields, STRUCT_EQ_X)                          \
+                return true;                                                   \
+            }                                                                                                  \
+        static std::string value_field_to_string(){                                                                   \
+            return valuefields(FIRST_VALUE_TO_STRING, REST_VALUE_TO_STRING);                                                                                                       \
+        }                                                                                                          \
+    };                                                                                                         \
+namespace std {                                                                       \
+    template<>                                                                        \
+    struct hash<keyname> {                                                            \
+        std::size_t operator()(keyname k) const{                                      \
+            return Hash::hash(keyfields(STRUCT_HASH_FIRST_X, STRUCT_HASH_REST_X));    \
+        }                                                                             \
+    };                                                                                \
+};
 #endif //DMVCCA_ROW_H

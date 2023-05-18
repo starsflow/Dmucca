@@ -15,7 +15,7 @@ public:
 
     static const int readWriteRatio = 0;            // out of 100
     static const int readOnlyTransaction = 0;       //  out of 100
-    static const std::size_t keysPerTable = 1000000;
+    static const std::size_t keysPerTable = 100;
     static const std::size_t keysPerTransaction = 10;
     static const bool isUniform = true;
 };

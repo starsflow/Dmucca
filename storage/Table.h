@@ -13,13 +13,15 @@
 template<class KeyType, class ValueType>
 class Table {
 private:
-    std::unordered_map<KeyType, ValueType, decltype(&KeyType::hash_key)> _table;
-//    std::unordered_map<KeyType, ValueType>::hasher hasher;
+    std::unordered_map<KeyType, ValueType> _table;
     Database* _db;
-    std::size_t _table_id;
+    std::size_t _table_id = 0;
+    int s = 0;
 
 public:
-    Table(Database* db, std::size_t table_id) : _db(db), _table_id(table_id){}
+    Table(Database* db, std::size_t table_id) : _db(db), _table_id(table_id){
+        LOG(INFO) << "table id: " << _table_id;
+    }
 
     Table() {}
 
@@ -39,9 +41,10 @@ public:
     }
 
     void insert(KeyType key, ValueType value){
-        _db->sum([](){}, 0);
+        LOG(INFO) << _db->_tables.size();
         _db->apply_with_locked_table<std::function<void* (Table<KeyType, ValueType>*)>, KeyType, ValueType>(
             [key, value](Table<KeyType, ValueType>* table) {
+                LOG(INFO) << 3;
                     table->_table[key] = value;
                     return nullptr;
                 },
@@ -57,8 +60,6 @@ public:
             _table_id
         );
     }
-
-
 
     auto bucket_number(KeyType key) { return hasher(key);}
 

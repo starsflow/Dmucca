@@ -14,14 +14,14 @@
 
 class YTable : public Table<YKey, YValue> {
 private:
-    // only a table is needed in ycsb
-    Database* _db;
-    Table<YKey, YValue>* _table;
+// only a table is needed in ycsb
+//    Database* _db;
+//    Table<YKey, YValue>* _table;
     YRandom _random;
 
 public:
     void initialize_table(){
-        _table = _db->create_table<YKey, YValue>();
+        LOG(INFO) << YContext::keysPerTable;
         for(std::size_t i = 0; i < YContext::keysPerTable; i++) {
             YKey key;
             key.Y_KEY = i;
@@ -36,8 +36,8 @@ public:
             value.Y_F08.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
             value.Y_F09.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
             value.Y_F10.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-            
-            _table->insert(key, value);
+            LOG(INFO) << key.Y_KEY << value.Y_F01;
+            this->insert(key, value);
         }
     }
 };

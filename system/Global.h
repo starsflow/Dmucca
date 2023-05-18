@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <functional>
 #include <memory>
-
+#include <glog/logging.h>
+#include "gtest/gtest.h"
 
 #endif //DMVCCA_GLOBAL_H

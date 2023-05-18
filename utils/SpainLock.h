@@ -24,7 +24,7 @@ public:
     void unlock() { _lock.clear(std::memory_order_release); }
 
     // friend declaration
-    friend std::ostream &operator<<(std::ostream &, const SpinLock &);
+//    friend std::ostream &operator<<(std::ostream &, const SpinLock &);
 
 private:
     std::atomic_flag _lock = ATOMIC_FLAG_INIT;

@@ -28,7 +28,6 @@ static constexpr auto YCSB_FIELD_SIZE = 10;
                                     y(std::string, Y_F09)       \
                                         y(std::string, Y_F10)
 
-STRUCT_KEY(YCSB_KEY_NAME, YCSB_KEY_FIELDS);
+STRUCT_ROW(YCSB_KEY_NAME, YCSB_VALUE_NAME, YCSB_KEY_FIELDS, YCSB_VALUE_FIELDS);
 
-STRUCT_VALUE(YCSB_VALUE_NAME, YCSB_VALUE_FIELDS);
 #endif //DMVCCA_YSCHEMA_H
