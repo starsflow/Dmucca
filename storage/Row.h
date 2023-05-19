@@ -24,19 +24,19 @@
 
 #define STRUCT_LAYOUT_X(type, name) type name;
 
-#define FIRST_KEY_TO_STRING(type, name) std::string(#name)
+#define FIRST_KEY_TO_STRING(type, name) ss << #name
 
-#define REST_KEY_TO_STRING(type, name) std::string(";") + #name
+#define REST_KEY_TO_STRING(type, name) << ";" << #name
 
-#define FIRST_VALUE_TO_STRING(type, name) std::string(#name)
+#define FIRST_VALUE_TO_STRING(type, name) ss << name
 
-#define REST_VALUE_TO_STRING(type, name) + ";" + #name
+#define REST_VALUE_TO_STRING(type, name) << "\t" << name
 
 #define STRUCT_EQ_X(type, name)                                              \
   if (this->name != other.name)                                              \
     return false;
 
-#define STRUCT_FIELDPOS_X(type, name) name##_field,
+//#define STRUCT_FIELDPOS_X(type, name) name##_field,
 
 // the main macro
 #define STRUCT_ROW(keyname, valuename, keyfields, valuefields)                                                 \
@@ -55,9 +55,16 @@
                 return !operator==(other);                                     \
             }                                                                  \
                                                                                                                \
-        static std::string key_field_to_string(){                                                                           \
-            return keyfields(FIRST_KEY_TO_STRING, REST_KEY_TO_STRING);                                                                                                       \
-        }                                                                                                           \
+        static std::stringstream class_to_string(){                                                            \
+            std::stringstream ss; \
+            keyfields(FIRST_KEY_TO_STRING, REST_KEY_TO_STRING);                                                \
+            return ss;\
+        }                                                                                                      \
+        std::stringstream member_to_string(){                                                                        \
+            std::stringstream ss; \
+            keyfields(FIRST_VALUE_TO_STRING, REST_VALUE_TO_STRING);                                            \
+            return ss;\
+        }                                                                                                       \
     };                                                                             \
     class valuename{                                                              \
     public:                                                                  \
@@ -70,9 +77,16 @@
                 APPLY_X_AND_Y(valuefields, STRUCT_EQ_X)                          \
                 return true;                                                   \
             }                                                                                                  \
-        static std::string value_field_to_string(){                                                                   \
-            return valuefields(FIRST_VALUE_TO_STRING, REST_VALUE_TO_STRING);                                                                                                       \
-        }                                                                                                          \
+        static std::stringstream class_to_string(){                                                            \
+            std::stringstream ss; \
+            valuefields(FIRST_KEY_TO_STRING, REST_KEY_TO_STRING);                                              \
+            return ss;\
+        }                                                                                                      \
+        std::stringstream member_to_string(){                                                                        \
+            std::stringstream ss;\
+            valuefields(FIRST_VALUE_TO_STRING, REST_VALUE_TO_STRING);                                          \
+            return ss;\
+        }\
     };                                                                                                         \
 namespace std {                                                                       \
     template<>                                                                        \

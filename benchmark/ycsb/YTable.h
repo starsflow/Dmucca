@@ -21,7 +21,6 @@ private:
 
 public:
     void initialize_table(){
-        LOG(INFO) << YContext::keysPerTable;
         for(std::size_t i = 0; i < YContext::keysPerTable; i++) {
             YKey key;
             key.Y_KEY = i;
@@ -36,10 +35,13 @@ public:
             value.Y_F08.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
             value.Y_F09.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
             value.Y_F10.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-            LOG(INFO) << key.Y_KEY << value.Y_F01;
             this->insert(key, value);
         }
     }
+
+//    void print_table_y(){
+//        this->print_table();
+//    }
 };
 
 #endif //DMVCCA_YTABLE_H

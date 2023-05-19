@@ -6,7 +6,11 @@
 
 int main() {
     auto *db = new Database();
-    auto* table = reinterpret_cast<YTable *>(db->create_table<int, int>());
+    auto *table = static_cast<YTable *>(db->create_table<int, int>());
     table->initialize_table();
+    table->print_table();
+
+    auto *res = static_cast<YValue *>(table->search(99));
+    LOG(INFO) << res->Y_F01;
     return 0;
 }

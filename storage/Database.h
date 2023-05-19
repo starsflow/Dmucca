@@ -20,10 +20,9 @@ public:
 
 public:
     template<class KeyType, class ValueType>
-    Table<KeyType, ValueType>* create_table() {
-        LOG(INFO) << typeid(KeyType).name() << "  " << typeid(ValueType).name();
+    void* create_table() {
         auto *table = new Table<KeyType, ValueType>(this, _table_number++);
-        _tables.push_back(reinterpret_cast<Table<KeyType, ValueType> *> (table));
+        _tables.push_back(table);
         auto *lock = new SpinLock();
         _locks.push_back(lock);
         return table;
@@ -31,24 +30,20 @@ public:
 
     template<class Func, class KeyType, class ValueType>
     auto apply_with_locked_table(Func func, std::size_t table_id) {
-        LOG(INFO) << table_id;
         _locks[table_id]->lock();
         auto result = func(static_cast<Table<KeyType, ValueType>*>(_tables[table_id]));
         _locks[table_id]->unlock();
         return result;
     }
 
-    template<class KeyType, class ValueType>
-    void print_table(){
-        std::vector<std::string> table_titles;
-        KeyType::key_field_to_string();
-    }
-
-    template<class Func>
-    auto &apply_ref_with_locked_table(Func func, std::size_t table_id){
+    template<class Func, class KeyType, class ValueType>
+    auto* apply_ref_with_locked_table(Func func, std::size_t table_id){
+        LOG(INFO) << 5;
         _locks[table_id]->lock();
-        auto &result = Func(_tables[table_id]);
+        auto* result = func(static_cast<Table<KeyType, ValueType>*>(_tables[table_id]));
+        LOG(INFO) << 6;
         _locks[table_id]->unlock();
+        LOG(INFO) << 7;
         return result;
     }
 };
