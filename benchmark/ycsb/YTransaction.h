@@ -88,7 +88,6 @@ public:
                     storage.ycsb_values[i].Y_F10.assign(
                             local_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
                 }
-
                 this->update(ycsbTableID, context.getPartitionID(key),
                              storage.ycsb_keys[i], storage.ycsb_values[i]);
             }

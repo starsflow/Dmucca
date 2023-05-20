@@ -16,4 +16,6 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+enum class TransactionResult { COMMIT, READY_TO_COMMIT, ABORT, ABORT_NORETRY };
+
 #endif //DMVCCA_GLOBAL_H

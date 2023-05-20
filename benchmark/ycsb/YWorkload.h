@@ -6,12 +6,12 @@
 #define DMVCCA_YWORKLOAD_H
 
 #include "Global.h"
-#include "Zipf.h"
-#include "YRandom.h"
-#include "YContext.h"
 #include "HashMap.h"
+#include "YContext.h"
+#include "YRandom.h"
+#include "Zipf.h"
 
-template<std::size_t N>
+template <std::size_t N>
 class YWorkload {
 public:
     std::size_t Y_KEY[N];
@@ -35,9 +35,7 @@ public:
             }
 
             std::size_t key;
-            bool retry;
             do {
-                retry = false;
                 if (context.isUniform) {
                     key = random.uniform_dist(0, static_cast<int>(N) - 1);
                 } else {
@@ -54,4 +52,4 @@ public:
     }
 };
 
-#endif //DMVCCA_YWORKLOAD_H
+#endif  // DMVCCA_YWORKLOAD_H

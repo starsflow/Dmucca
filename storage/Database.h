@@ -1,7 +1,9 @@
 //
 // Created by lxc on 5/11/23.
 //
+#pragma once
 
+#include <cstddef>
 #ifndef DMVCCA_DATABASE_H
 #define DMVCCA_DATABASE_H
 
@@ -26,6 +28,12 @@ public:
         auto *lock = new SpinLock();
         _locks.push_back(lock);
         return table;
+    }
+
+    void* find_table(std::size_t table_id){
+        if(table_id >= _tables.size())
+            return nullptr;
+        return _tables[table_id];
     }
 
     template<class Func, class KeyType, class ValueType>

@@ -37,4 +37,6 @@ build/
 CMakeFiles/
 .vscode/
 .idea/
+.cache/
+.clang-format
 googletest/

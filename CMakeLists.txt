@@ -12,4 +12,4 @@ else()
     link_libraries(${jemalloc_lib} glog gflags)
 endif()
 
-add_executable(Dmvcca test.cpp test.cpp)
+add_executable(Dmvcca test.cpp)

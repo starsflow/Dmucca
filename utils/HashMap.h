@@ -7,10 +7,11 @@
 
 #include <atomic>
 #include <unordered_map>
+
 #include "Global.h"
 #include "SpainLock.h"
 
-template<std::size_t N, class KeyType, class ValueType>
+template <std::size_t N, class KeyType, class ValueType>
 class HashMap {
 public:
     using HashMapType = std::unordered_map<KeyType, ValueType>;
@@ -19,47 +20,50 @@ public:
 public:
     bool remove(const KeyType &key) {
         return _apply(
-                [&key](HashMapType &map) {
-                    auto it = map.find(key);
-                    if (it == map.end()) {
-                        return false;
-                    } else {
-                        map.erase(it);
-                        return true;
-                    }
-                },
-                _bucket_number(key));
+            [&key](HashMapType &map) {
+                auto it = map.find(key);
+                if (it == map.end()) {
+                    return false;
+                } else {
+                    map.erase(it);
+                    return true;
+                }
+            },
+            _bucket_number(key));
     }
 
     bool contain(const KeyType &key) {
         return _apply(
-                [&key](const HashMapType &map) { return map.find(key) != map.end(); },
-                _bucket_number(key));
+            [&key](const HashMapType &map) {
+                return map.find(key) != map.end();
+            },
+            _bucket_number(key));
     }
 
     bool insert(const KeyType &key, const ValueType &value) {
         return _apply(
-                [&key, &value](HashMapType &map) {
-                    if (map.find(key) != map.end()) {
-                        return false;
-                    }
-                    map[key] = value;
-                    return true;
-                },
-                _bucket_number(key));
+            [&key, &value](HashMapType &map) {
+                if (map.find(key) != map.end()) {
+                    return false;
+                }
+                map[key] = value;
+                return true;
+            },
+            _bucket_number(key));
     }
 
     std::vector<KeyType> travel_keys() {
         std::vector<KeyType> keys;
-        for(auto key : _maps)
-            _apply([key, &keys](){ keys.push_back(key); },_bucket_number(key));
+        for (auto key : _maps)
+            _apply([key, &keys]() { keys.push_back(key); },
+                   _bucket_number(key));
         return keys;
     }
 
     ValueType &operator[](const KeyType &key) {
         return _apply_ref(
-                [&key](HashMapType &map) -> ValueType & { return map[key]; },
-                _bucket_number(key));
+            [&key](HashMapType &map) -> ValueType & { return map[key]; },
+            _bucket_number(key));
     }
 
     std::size_t size() {
@@ -73,7 +77,7 @@ public:
     }
 
 private:
-    template<class ApplyFunc>
+    template <class ApplyFunc>
     auto &_apply_ref(ApplyFunc applyFunc, std::size_t i) {
         DCHECK(i < N) << "index " << i << " is greater than " << N;
         _locks[i].lock();
@@ -82,7 +86,7 @@ private:
         return result;
     }
 
-    template<class ApplyFunc>
+    template <class ApplyFunc>
     auto _apply(ApplyFunc applyFunc, std::size_t i) {
         DCHECK(i < N) << "index " << i << " is greater than " << N;
         _locks[i].lock();
@@ -91,7 +95,7 @@ private:
         return result;
     }
 
-    template<class MapFunc>
+    template <class MapFunc>
     void _map(MapFunc mapFunc) {
         for (auto i = 0u; i < N; i++) {
             _locks[i].lock();
@@ -100,7 +104,7 @@ private:
         }
     }
 
-    template<class T, class FoldFunc>
+    template <class T, class FoldFunc>
     auto _fold(const T &firstValue, FoldFunc foldFunc) {
         T finalValue = firstValue;
         for (auto i = 0u; i < N; i++) {
@@ -119,5 +123,4 @@ private:
     SpinLock _locks[N];
 };
 
-
-#endif //DMVCCA_HASHMAP_H
+#endif  // DMVCCA_HASHMAP_H

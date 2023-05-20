@@ -5,6 +5,7 @@
 #ifndef DMVCCA_YTABLE_H
 #define DMVCCA_YTABLE_H
 
+#include <atomic>
 #include "Global.h"
 #include "Table.h"
 #include "YRandom.h"
@@ -35,7 +36,8 @@ public:
             value.Y_F08.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
             value.Y_F09.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
             value.Y_F10.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-            this->insert(key, value);
+            MetaType a(-1);
+            this->insert(key, -1, value);
         }
     }
 
