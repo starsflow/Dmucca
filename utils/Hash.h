@@ -13,6 +13,7 @@ private:
     inline static std::size_t hash_combine(const T &v1, const T &v2) {
         return v2 ^ (v1 + 0x9e3779b9 + (v2 << 6) + (v2 >> 2));
     }
+    
 public:
     template<typename T>
     inline static std::size_t hash(const T &v) {

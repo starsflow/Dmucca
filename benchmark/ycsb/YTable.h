@@ -36,14 +36,10 @@ public:
             value.Y_F08.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
             value.Y_F09.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
             value.Y_F10.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-            MetaType a(-1);
-            this->insert(key, -1, value);
+            uint64_t a(-1);
+            this->insert(key, 3, value);
         }
     }
-
-//    void print_table_y(){
-//        this->print_table();
-//    }
 };
 
 #endif //DMVCCA_YTABLE_H

@@ -2,8 +2,8 @@
 // Created by lxc on 5/9/23.
 //
 
-#ifndef DMVCCA_SPAINLOCK_H
-#define DMVCCA_SPAINLOCK_H
+#ifndef DMVCCA_SPINLOCK_H
+#define DMVCCA_SPINLOCK_H
 
 #include <atomic>
 #include <ostream>
@@ -30,5 +30,4 @@ private:
     std::atomic_flag _lock = ATOMIC_FLAG_INIT;
 };
 
-
-#endif //DMVCCA_SPAINLOCK_H
+#endif //DMVCCA_SPINLOCK_H

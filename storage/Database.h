@@ -8,8 +8,9 @@
 #define DMVCCA_DATABASE_H
 
 #include "Global.h"
-#include "SpainLock.h"
+#include "SpinLock.h"
 #include "Table.h"
+#include "Config.h"
 
 template<class KeyType, class ValueType>
 class Table;
@@ -36,6 +37,7 @@ public:
         return _tables[table_id];
     }
 
+    //lock the totoal table
     template<class Func, class KeyType, class ValueType>
     auto apply_with_locked_table(Func func, std::size_t table_id) {
         _locks[table_id]->lock();
@@ -46,12 +48,9 @@ public:
 
     template<class Func, class KeyType, class ValueType>
     auto* apply_ref_with_locked_table(Func func, std::size_t table_id){
-        LOG(INFO) << 5;
         _locks[table_id]->lock();
         auto* result = func(static_cast<Table<KeyType, ValueType>*>(_tables[table_id]));
-        LOG(INFO) << 6;
         _locks[table_id]->unlock();
-        LOG(INFO) << 7;
         return result;
     }
 };

@@ -9,7 +9,7 @@
 #include <unordered_map>
 
 #include "Global.h"
-#include "SpainLock.h"
+#include "SpinLock.h"
 
 template <std::size_t N, class KeyType, class ValueType>
 class HashMap {

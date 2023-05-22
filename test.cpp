@@ -11,7 +11,8 @@ int main() {
     // table->print_table();
 
     auto *res = static_cast<YValue *>(table->search_value(99));
-    table->erase(200);
-    table->print_table();
+    table->erase(99);
+    // table->print_table();
+    std::cout << *(table->search_metadata(98));
     return 0;
 }

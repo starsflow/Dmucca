@@ -15,6 +15,8 @@
 #include <sstream>
 #include <glog/logging.h>
 #include <gtest/gtest.h>
+#include <atomic>
+#include <shared_mutex>
 
 enum class TransactionResult { COMMIT, READY_TO_COMMIT, ABORT, ABORT_NORETRY };
 
