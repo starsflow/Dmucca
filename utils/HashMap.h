@@ -1,9 +1,9 @@
-//
-// Created by lxc on 5/9/23.
-//
+/*
+ * @Author: lxc
+ * @Date: 05/09/2023
+ */
 
-#ifndef DMVCCA_HASHMAP_H
-#define DMVCCA_HASHMAP_H
+#pragma once
 
 #include <atomic>
 #include <unordered_map>
@@ -123,4 +123,3 @@ private:
     SpinLock _locks[N];
 };
 
-#endif  // DMVCCA_HASHMAP_H

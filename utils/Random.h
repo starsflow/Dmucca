@@ -1,9 +1,9 @@
-//
-// Created by lxc on 5/10/23.
-//
+/*
+ * @Author: lxc
+ * @Date: 05/10/2023
+ */
 
-#ifndef DMVCCA_RANDOM_H
-#define DMVCCA_RANDOM_H
+#pragma once
 
 #include "Global.h"
 #include <string>
@@ -12,33 +12,33 @@ class Random {
 public:
     Random(uint64_t seed = 0) { init_seed(seed); }
 
-    void init_seed(uint64_t seed) {
+    static void init_seed(uint64_t seed) {
         _seed = (seed ^ 0x5DEECE66DULL) & ((1ULL << 48) - 1);
     }
 
-    void set_seed(uint64_t seed) { _seed = seed; }
+    static void set_seed(uint64_t seed) { _seed = seed; }
 
-    uint64_t get_seed() { return _seed; }
+    static uint64_t get_seed() { return _seed; }
 
-    uint64_t next() { return ((uint64_t) next(32) << 32) + next(32); }
+    static uint64_t next() { return ((uint64_t) next(32) << 32) + next(32); }
 
-    uint64_t next(unsigned int bits) {
+    static uint64_t next(unsigned int bits) {
         _seed = (_seed * 0x5DEECE66DULL + 0xBULL) & ((1ULL << 48) - 1);
         return (_seed >> (48 - bits));
     }
 
     /* [0.0, 1.0) */
-    double next_double() {
+    static double next_double() {
         return (((uint64_t) next(26) << 27) + next(27)) / (double) (1ULL << 53);
     }
 
-    uint64_t uniform_dist(uint64_t a, uint64_t b) {
+    static uint64_t uniform_dist(uint64_t a, uint64_t b) {
         if (a == b)
             return a;
         return next() % (b - a + 1) + a;
     }
 
-    std::string rand_str(std::size_t length, const std::string &str) {
+    static std::string rand_str(std::size_t length, const std::string &str) {
         std::string result;
         auto str_len = str.length();
         for (auto i = 0u; i < length; i++) {
@@ -48,7 +48,7 @@ public:
         return result;
     }
 
-    std::string a_string(std::size_t min_len, std::size_t max_len) {
+    static std::string a_string(std::size_t min_len, std::size_t max_len) {
         auto len = uniform_dist(min_len, max_len);
         return rand_str(len, alpha());
     }
@@ -59,7 +59,6 @@ private:
         return alpha_;
     };
 
-    uint64_t _seed;
+    static uint64_t _seed;
 };
 
-#endif //DMVCCA_RANDOM_H

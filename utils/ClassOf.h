@@ -1,9 +1,9 @@
-//
-// Created by lxc on 5/10/23.
-//
-
-#ifndef DMVCCA_CLASSOF_H
-#define DMVCCA_CLASSOF_H
+/*
+ * @Author: lxc
+ * @Date: 05/10/2023
+ */
+ 
+#pragma once
 
 #include "Global.h"
 #include <cstddef>
@@ -13,4 +13,3 @@ public:
     static constexpr std::size_t size() { return sizeof(T); }
 };
 
-#endif //DMVCCA_CLASSOF_H

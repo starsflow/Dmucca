@@ -1,9 +1,9 @@
-//
-// Created by lxc on 5/10/23.
-//
+/*
+ * @Author: lxc
+ * @Date: 05/10/2023
+ */
 
-#ifndef DMVCCA_YCONTEXT_H
-#define DMVCCA_YCONTEXT_H
+#pragma once
 
 #include "Global.h"
 
@@ -19,6 +19,3 @@ public:
     static const std::size_t keysPerTransaction = 10;
     static const bool isUniform = true;
 };
-
-
-#endif //DMVCCA_YCONTEXT_H

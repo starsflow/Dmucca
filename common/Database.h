@@ -1,11 +1,9 @@
-//
-// Created by lxc on 5/11/23.
-//
-#pragma once
+/*
+ * @Author: lxc
+ * @Date: 05/11/2023
+ */
 
-#include <cstddef>
-#ifndef DMVCCA_DATABASE_H
-#define DMVCCA_DATABASE_H
+#pragma once
 
 #include "Global.h"
 #include "SpinLock.h"
@@ -24,7 +22,7 @@ public:
 public:
     template<class KeyType, class ValueType>
     void* create_table() {
-        auto *table = new Table<KeyType, ValueType>(this, _table_number++);
+        ITable *table = new Table<KeyType, ValueType>(this, _table_number++);
         _tables.push_back(table);
         auto *lock = new SpinLock();
         _locks.push_back(lock);
@@ -54,5 +52,3 @@ public:
         return result;
     }
 };
-
-#endif //DMVCCA_DATABASE_H

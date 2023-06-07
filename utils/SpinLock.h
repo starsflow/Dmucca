@@ -1,9 +1,9 @@
-//
-// Created by lxc on 5/9/23.
-//
+/*
+ * @Author: lxc
+ * @Date: 05/09/2023
+ */
 
-#ifndef DMVCCA_SPINLOCK_H
-#define DMVCCA_SPINLOCK_H
+#pragma once 
 
 #include <atomic>
 #include <ostream>
@@ -30,4 +30,3 @@ private:
     std::atomic_flag _lock = ATOMIC_FLAG_INIT;
 };
 
-#endif //DMVCCA_SPINLOCK_H

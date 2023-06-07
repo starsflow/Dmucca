@@ -1,9 +1,9 @@
-//
-// Created by lxc on 5/17/23.
-//
+/*
+ * @Author: lxc
+ * @Date: 05/17/2023
+ */
 
-#ifndef DMVCCA_HASH_H
-#define DMVCCA_HASH_H
+#pragma once
 
 #include "Global.h"
 
@@ -27,4 +27,3 @@ public:
     }
 };
 
-#endif //DMVCCA_HASH_H

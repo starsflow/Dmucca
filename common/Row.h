@@ -1,9 +1,8 @@
-//
-// Created by lxc on 5/10/23.
-//
-
-#ifndef DMVCCA_ROW_H
-#define DMVCCA_ROW_H
+/*
+ * @Author: lxc
+ * @Date: 05/10/2023
+ */
+#pragma once
 
 #include "Global.h"
 #include "Hash.h"
@@ -18,9 +17,9 @@
 
 #define STRUCT_INITLIST_REST_X(type, name) , name(name)
 
-#define STRUCT_HASH_FIRST_X(type, name) k.name
+#define STRUCT_HASH_FIRST_X(type, name) k->name
 
-#define STRUCT_HASH_REST_X(type, name) , k.name
+#define STRUCT_HASH_REST_X(type, name) , k->name
 
 #define STRUCT_LAYOUT_X(type, name) type name;
 
@@ -84,10 +83,9 @@
     namespace std {                                                           \
     template <>                                                               \
     struct hash<keyname> {                                                    \
-        std::size_t operator()(keyname k) const {                             \
+        std::size_t operator()(keyname* k) const {                             \
             return Hash::hash(                                                \
                 keyfields(STRUCT_HASH_FIRST_X, STRUCT_HASH_REST_X));          \
         }                                                                     \
     };                                                                        \
     }
-#endif  // DMVCCA_ROW_H

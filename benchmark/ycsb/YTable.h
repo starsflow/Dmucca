@@ -1,11 +1,10 @@
-//
-// Created by lxc on 5/10/23.
-//
+/*
+ * @Author: lxc
+ * @Date: 05/10/2023
+ */
 
-#ifndef DMVCCA_YTABLE_H
-#define DMVCCA_YTABLE_H
+#pragma once
 
-#include <atomic>
 #include "Global.h"
 #include "Table.h"
 #include "YRandom.h"
@@ -15,7 +14,7 @@
 
 class YTable : public Table<YKey, YValue> {
 private:
-// only a table is needed in ycsb
+// only one table is needed in ycsb
 //    Database* _db;
 //    Table<YKey, YValue>* _table;
     YRandom _random;
@@ -37,9 +36,8 @@ public:
             value.Y_F09.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
             value.Y_F10.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
             uint64_t a(-1);
-            this->insert(key, 3, value);
+            this->insert(&key, 3, &value);
         }
     }
 };
 
-#endif //DMVCCA_YTABLE_H

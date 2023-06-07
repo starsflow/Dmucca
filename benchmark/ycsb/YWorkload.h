@@ -1,55 +1,23 @@
-//
-// Created by lxc on 5/11/23.
-//
+/*
+ * @Author: lxc
+ * @Date: 06/07/2023
+ */
 
-#ifndef DMVCCA_YWORKLOAD_H
-#define DMVCCA_YWORKLOAD_H
+#pragma once
 
+#include "Database.h"
 #include "Global.h"
-#include "HashMap.h"
-#include "YContext.h"
-#include "YRandom.h"
-#include "Zipf.h"
+#include "YTransaction.h"
 
-template <std::size_t N>
+template <class Transaction>
 class YWorkload {
+private:
+    Database* _db;
 public:
-    std::size_t Y_KEY[N];
-    bool UPDATE[N];
+    YWorkload(Database* db) : _db(db) {} 
 
-    YWorkload(YContext &context, YRandom &random) {
-        int readOnly = random.uniform_dist(1, 100);
-        std::unordered_set<std::size_t> keys;
-
-        for (auto i = 0u; i < N; i++) {
-            // read or write
-            if (readOnly <= context.readOnlyTransaction) {
-                this->UPDATE[i] = false;
-            } else {
-                int readOrWrite = random.uniform_dist(1, 100);
-                if (readOrWrite <= context.readWriteRatio) {
-                    this->UPDATE[i] = false;
-                } else {
-                    this->UPDATE[i] = true;
-                }
-            }
-
-            std::size_t key;
-            do {
-                if (context.isUniform) {
-                    key = random.uniform_dist(0, static_cast<int>(N) - 1);
-                } else {
-                    key = Zipf::globalZipf().value(random.next_double());
-                }
-
-                auto result = keys.find(key);
-                if (result == keys.end()) {
-                    this->Y_KEY[i] = key;
-                    break;
-                }
-            } while (true);
-        }
+    YTransaction<Transaction>* next_transaction() {
+        std::unique_ptr<Transaction> p = std::make_unique<YTransaction<Transaction>>(_db);
+        return p;
     }
 };
-
-#endif  // DMVCCA_YWORKLOAD_H

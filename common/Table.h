@@ -11,11 +11,31 @@
 #include "Config.h"
 
 class Database;
-// N: number of records in table
-template <class KeyType, class ValueType>
-class Table {
+
+class ITable {
 public:
-    using MetaType = std::atomic<uint64_t>;
+    using MetaType = std::atomic<uint32_t>;
+
+    virtual void* search_value(const void* key) = 0;
+
+    virtual MetaType* search_metadata(const void* key) = 0;
+
+    virtual bool update_metadata(const void* key, uint64_t meta) = 0;
+
+    virtual void print_table() = 0;
+
+    virtual bool erase(const void* key) = 0;
+
+    virtual bool insert(const void* key, uint64_t meta, const void* value) = 0;
+
+    virtual bool update_value(const void* key, const void* value) = 0;
+
+};
+
+template <class KeyType, class ValueType>
+class Table : public ITable {
+public:
+    using MetaType = std::atomic<uint32_t>;
 
     Table(Database *db, std::size_t table_id)
         : _db(db), _table_id(table_id){}
@@ -24,7 +44,7 @@ public:
 
     virtual ~Table() = default;
 
-    void* search_value(KeyType key) {
+    void* search_value(const void* key) {
         return this->apply_ref_with_locked_bucket<std::function<void *(Table<KeyType, ValueType> *)>>(
             [key](Table<KeyType, ValueType> *table) -> void * {
                 auto result = table->_table.find(key);
@@ -34,7 +54,7 @@ public:
             get_bucket_number(key), false);
     }
 
-    MetaType* search_metadata(KeyType key) {
+    MetaType* search_metadata(const void* key) {
         return this->apply_ref_with_locked_bucket<std::function<MetaType *(Table<KeyType, ValueType> *)>>(
             [key](Table<KeyType, ValueType> *table) -> MetaType * {
                 auto result = table->_table.find(key);
@@ -44,7 +64,7 @@ public:
             get_bucket_number(key), false);
     }
 
-    bool update_metadata(KeyType key, uint64_t meta) {
+    bool update_metadata(const void* key, uint64_t meta) {
         return this->apply_with_locked_bucket<std::function<bool(Table<KeyType, ValueType> *)>>(
             [key, meta](Table<KeyType, ValueType> *table) -> bool {
                 auto result = table->_table.find(key);
@@ -55,7 +75,7 @@ public:
             get_bucket_number(key), true);
     }
 
-    bool update_value(KeyType key, ValueType value) {
+    bool update_value(const void* key, const void* value) {
         return this->apply_with_locked_bucket<std::function<bool(Table<KeyType, ValueType> *)>>(
             [key, value](Table<KeyType, ValueType> *table) -> bool {
                 auto result = table->_table.find(key);
@@ -66,7 +86,7 @@ public:
             get_bucket_number(key), true);
     }
 
-    bool insert(KeyType key, uint64_t meta, ValueType value) {
+    bool insert(const void* key, uint64_t meta, const void* value) {
         return this->apply_with_locked_bucket<std::function<bool(Table<KeyType, ValueType> *)>>(
             [key, meta, value](Table<KeyType, ValueType> *table) -> bool {
                 std::atomic_store(&std::get<0>(table->_table[key]), meta);
@@ -76,7 +96,7 @@ public:
             get_bucket_number(key), true);
     }
 
-    bool erase(KeyType key) {
+    bool erase(const void* key) {
         return this->apply_with_locked_bucket<
             std::function<bool(Table<KeyType, ValueType> *)>>(
             [key](Table<KeyType, ValueType> *table) -> bool {
@@ -96,7 +116,7 @@ public:
         std::cout << "\n";
 
         for (auto &[key, value] : _table) {
-            std::cout << key.member_to_string().str() << "\t\t";
+            std::cout << key->member_to_string().str() << "\t\t";
             std::cout << std::get<1>(value).member_to_string().str()
                       << std::endl;
         }
@@ -122,9 +142,7 @@ public:
         return result;
     }
 
-    auto get_bucket_number(KeyType key) { 
-        hasher(key);
-        return hasher(key) % BUCKET_NUMBER; }
+    auto get_bucket_number(void* key) { return hasher(static_cast<KeyType *>(key)) % BUCKET_NUMBER; }
 
     void garbage_collect(const void *key) {}
 
@@ -139,8 +157,8 @@ public:
     Database *get_database() { return _db; }
 
 private:
-    std::unordered_map<KeyType, std::tuple<MetaType, ValueType>> _table;
-    typename std::unordered_map<KeyType, std::tuple<MetaType, ValueType>>::hasher hasher;
+    std::unordered_map<KeyType* , std::tuple<MetaType, ValueType* >> _table;
+    typename std::unordered_map<KeyType* , std::tuple<MetaType, ValueType* >>::hasher hasher;
     Database *_db;
     // SpinLock _locks[BUCKET_NUMBER];
     std::size_t _table_id = 0;

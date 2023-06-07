@@ -1,10 +1,13 @@
-//
-// Created by lxc on 5/9/23.
-//
-
-#ifndef DMVCCA_CONFIG_H
-#define DMVCCA_CONFIG_H
+/*
+ * @Author: lxc
+ * @Date: 05/09/2023
+ */
+#pragma once 
 
 #define BUCKET_NUMBER 32
 
-#endif //DMVCCA_CONFIG_H
+#define CC_FLAG NO_WAIT
+
+#define NO_WAIT 0
+#define WAIT_DIE 1
+

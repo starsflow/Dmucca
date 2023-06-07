@@ -1,9 +1,9 @@
-//
-// Created by lxc on 5/11/23.
-//
+/*
+ * @Author: lxc
+ * @Date: 05/11/2023
+ */
 
-#ifndef DMVCCA_ZIPF_H
-#define DMVCCA_ZIPF_H
+#pragma once
 
 #include "Global.h"
 
@@ -57,4 +57,3 @@ private:
     double _eta;
 };
 
-#endif //DMVCCA_ZIPF_H

@@ -1,13 +1,14 @@
-//
-// Created by lxc on 5/10/23.
-//
+/*
+ * @Author: lxc
+ * @Date: 05/10/2023
+ */
 
-#ifndef DMVCCA_YSCHEMA_H
-#define DMVCCA_YSCHEMA_H
+#pragma once
 
 #include "ClassOf.h"
 #include "Global.h"
 #include "Row.h"
+
 #include "YContext.h"
 
 static constexpr auto __BASE_COUNTER__ = __COUNTER__ + 1;
@@ -29,5 +30,3 @@ static constexpr auto YCSB_FIELD_SIZE = 10;
                                         y(std::string, Y_F10)
 
 STRUCT_ROW(YCSB_KEY_NAME, YCSB_VALUE_NAME, YCSB_KEY_FIELDS, YCSB_VALUE_FIELDS)
-
-#endif // DMVCCA_YSCHEMA_H

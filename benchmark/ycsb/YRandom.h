@@ -1,9 +1,9 @@
-//
-// Created by lxc on 5/10/23.
-//
+/*
+ * @Author: lxc
+ * @Date: 05/10/2023
+ */
 
-#ifndef DMVCCA_YRANDOM_H
-#define DMVCCA_YRANDOM_H
+#pragma once
 
 #include "Global.h"
 #include "Random.h"
@@ -12,7 +12,7 @@ class YRandom : public Random {
 public:
     using Random::Random;
 
-    std::string generate_random_str(std::size_t length) {
+    static std::string generate_random_str(std::size_t length) {
         std::string characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         auto characters_len = characters.size();
         std::string result;
@@ -23,5 +23,3 @@ public:
         return result;
     }
 };
-
-#endif //DMVCCA_YRANDOM_H
