@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <cstdint>
+#include "Table.h"
 #include "TwoPL.h"
 
 class TwoPLHelper {
@@ -40,24 +42,38 @@ public:
 #endif
 
 #if CC_FLAG == NO_WAIT
-    static bool request_write_lock(ITable* table, const void* key) {
+    static bool set_write_lock_bit(ITable* table, const void* key) {
         MetaType* meta_atomic = table->search_metadata(key);
         uint64_t meta = (*meta_atomic).load();
 
-        if(meta & 0x1)
+        if(meta & 0x3)
             return false;
         (*meta_atomic).fetch_or(0x1);
         return true;
     }
 
-    static bool request_read_lock(ITable* table, const void* key) {
+    static bool set_read_lock_bit(ITable* table, const void* key) {
         MetaType* meta_atomic = table->search_metadata(key);
         uint64_t meta = (*meta_atomic).load();
 
-        if(meta & 0x2)
+        if(meta & 0x1)
             return false;
         (*meta_atomic).fetch_or(0x2);
         return true;
+    }
+
+    static void reset_read_lock_bit(ITable* table, const void* key) {
+        MetaType* meta_atomic = table->search_metadata(key);
+        uint64_t meta = (*meta_atomic).load();
+        meta = ~(~meta | 0x2);  
+        (*meta_atomic).store(meta);
+    }
+
+    static void reset_write_lock_bit(ITable* table, const void* key) {
+        MetaType* meta_atomic = table->search_metadata(key);
+        uint64_t meta = (*meta_atomic).load();
+        meta = ~(~meta | 0x3);
+        (*meta_atomic).store(meta);
     }
 #endif
 

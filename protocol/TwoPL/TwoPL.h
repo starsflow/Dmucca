@@ -9,6 +9,7 @@
 #include "Table.h"
 #include "Config.h"
 #include "TwoPLTransaction.h"
+#include "ThreadPool.h"
 
 class TwoPL {
 private:
@@ -31,5 +32,5 @@ public:
         _max_tid ++;
         return _max_tid.load();
     }
-
+    
 };

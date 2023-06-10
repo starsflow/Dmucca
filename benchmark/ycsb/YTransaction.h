@@ -25,8 +25,6 @@ public:
     virtual ~YTransaction() override = default;
 
     TransactionResult execute(std::size_t worker_id) override {
-        DCHECK(YContext::keysPerTransaction == keys_num);
-
         for (auto i = 0u; i < keys_num; i++) {
             this->_keys[i] = _query.Y_KEY[i];
             if (_query.UPDATE[i]) {
@@ -37,7 +35,7 @@ public:
             }
         }
 
-        if (this->process_requests(worker_id)) {
+        if (this->process_requests(worker_id)) { 
             return TransactionResult::ABORT;
         }
 
