@@ -30,6 +30,13 @@ public:
 
     virtual bool update_value(const void* key, const void* value) = 0;
 
+    virtual std::size_t get_key_size();
+
+    virtual std::size_t get_value_size();
+
+    virtual std::size_t get_field_size();
+    
+    virtual std::size_t get_table_id();  
 };
 
 template <class KeyType, class ValueType>

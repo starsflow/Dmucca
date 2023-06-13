@@ -25,13 +25,14 @@ public:
     virtual ~YTransaction() override = default;
 
     TransactionResult execute(std::size_t worker_id) override {
+        this->set_txn_id();
         for (auto i = 0u; i < keys_num; i++) {
             this->_keys[i] = _query.Y_KEY[i];
             if (_query.UPDATE[i]) {
                 // read is needed before write the object
-                this->search_for_update(0, &this->_keys[i], &this->_values[i]);
+                this->append_write_set(0, &this->_keys[i], &this->_values[i]);
             } else {
-                this->search_for_read(0, &this->_keys[i], &this->_values[i]);
+                this->append_read_set(0, &this->_keys[i], &this->_values[i]);
             }
         }
 

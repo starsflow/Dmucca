@@ -41,3 +41,5 @@ CMakeFiles/
 .clang-format
 googletest/
 test.cpp
+external/
+test*
