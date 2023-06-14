@@ -40,6 +40,5 @@ CMakeFiles/
 .cache/
 .clang-format
 googletest/
-test.cpp
 external/
 test*

@@ -16,6 +16,7 @@
 #include <queue>
 #include <shared_mutex>
 #include <sstream>
+#include <stack>
 #include <stdexcept>
 #include <thread>
 #include <unordered_map>

@@ -4,12 +4,12 @@
  */
 #pragma once
 
-#include <sys/types.h>
 #include "Database.h"
 #include "Global.h"
 #include "Table.h"
 #include "TwoPLHelper.h"
 #include "Counter.h"
+#include "SafeQueue.h"
 
 struct RWItem {
     void* key;
@@ -23,11 +23,12 @@ public:
     std::vector<RWItem> read_set;
     std::vector<RWItem> write_set;
     int32_t txn_id;
-    TransactionResult res;
+    TransactionResult status;
+    SafeQuene<TwoPLTransaction>* _ready_execute_queue;
     Database* _db;
 
 public:
-    TwoPLTransaction(Database* db) : _db(db) {}
+    TwoPLTransaction(Database* db, SafeQuene<TwoPLTransaction>& queue) : _ready_execute_queue(&queue), _db(db) {}
 
     ~TwoPLTransaction() {
         read_set.clear();
@@ -75,6 +76,10 @@ public:
         }
     }
 
+    void insert_queue() {
+
+    }
+
     // template<class KeyType, class ValueType>
     // bool search_for_read(std::size_t table_id, KeyType* key, ValueType* value) {
     //     ITable* table = get_table(table_id);
@@ -119,16 +124,16 @@ public:
     //     return true;
     // }
 
-    void release_read_write_set_lock(std::size_t table_id) {
-        ITable* table = get_table(table_id);
-        for(auto read_item : read_set) {
-            auto* key = read_item.key;
-            TwoPLHelper::reset_read_lock_bit(table, key);
-        }
+    // void release_read_write_set_lock(std::size_t table_id) {
+    //     ITable* table = get_table(table_id);
+    //     for(auto read_item : read_set) {
+    //         auto* key = read_item.key;
+    //         TwoPLHelper::reset_read_lock_bit(table, key);
+    //     }
 
-        for(auto write_item : write_set) {
-            auto* key = write_item.key;
-            TwoPLHelper::reset_write_lock_bit(table, key);
-        }
-    }
+    //     for(auto write_item : write_set) {
+    //         auto* key = write_item.key;
+    //         TwoPLHelper::reset_write_lock_bit(table, key);
+    //     }
+    // }
 };

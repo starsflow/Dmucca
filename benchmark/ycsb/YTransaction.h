@@ -26,49 +26,37 @@ public:
 
     TransactionResult execute(std::size_t worker_id) override {
         this->set_txn_id();
+
         for (auto i = 0u; i < keys_num; i++) {
             this->_keys[i] = _query.Y_KEY[i];
             if (_query.UPDATE[i]) {
-                // read is needed before write the object
+                this->_values[i].Y_F01.assign(Random::a_string(
+                    YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F02.assign(Random::a_string(
+                    YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F03.assign(Random::a_string(
+                    YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F04.assign(Random::a_string(
+                    YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F05.assign(Random::a_string(
+                    YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F06.assign(Random::a_string(
+                    YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F07.assign(Random::a_string(
+                    YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F08.assign(Random::a_string(
+                    YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F09.assign(Random::a_string(
+                    YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F10.assign(Random::a_string(
+                    YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
                 this->append_write_set(0, &this->_keys[i], &this->_values[i]);
             } else {
                 this->append_read_set(0, &this->_keys[i], &this->_values[i]);
             }
         }
 
-        if (this->process_requests(worker_id)) { 
-            return TransactionResult::ABORT;
-        }
-
-        for (auto i = 0u; i < keys_num; i++) {
-            if (_query.UPDATE[i]) {
-                if (this->execution_phase) {
-                    this->_values[i].Y_F01.assign(Random::a_string(
-                        YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                    this->_values[i].Y_F02.assign(Random::a_string(
-                        YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                    this->_values[i].Y_F03.assign(Random::a_string(
-                        YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                    this->_values[i].Y_F04.assign(Random::a_string(
-                        YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                    this->_values[i].Y_F05.assign(Random::a_string(
-                        YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                    this->_values[i].Y_F06.assign(Random::a_string(
-                        YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                    this->_values[i].Y_F07.assign(Random::a_string(
-                        YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                    this->_values[i].Y_F08.assign(Random::a_string(
-                        YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                    this->_values[i].Y_F09.assign(Random::a_string(
-                        YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                    this->_values[i].Y_F10.assign(Random::a_string(
-                        YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                }
-                this->update(0, &this->_keys[i], &this->_values[i]);
-            }
-        }
-
-        return TransactionResult::READY_TO_COMMIT;
+        this->insert_queue();
     }
 
     void reset_query() override {
