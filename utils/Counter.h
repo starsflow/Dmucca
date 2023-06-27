@@ -8,7 +8,7 @@
 #include "Global.h"
 
 class Counter {
-private:
+public:
     static std::atomic<uint32_t> _counter;
 
 public:

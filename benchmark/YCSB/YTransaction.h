@@ -24,41 +24,31 @@ public:
 public:
     virtual ~YTransaction() = default;
 
-    YTransaction(Database* db, YContext& context, SafeQuene<Transaction>* queue) 
+    YTransaction(Database* db, YContext& context, SafeQuene<Transaction>* queue)
         : Transaction(db, queue), _context(context), _query(YQuery(context)) {}
 
-    void execute() {
+    void build_transaction() {
         this->set_txn_id();
 
         for (auto i = 0u; i < YContext::keysPerTransaction; i++) {
             this->_keys[i] = _query.Y_KEY[i];
             if (_query.UPDATE[i]) {
-                this->_values[i].Y_F01.assign(
-                    _random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                this->_values[i].Y_F02.assign(
-                    _random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                this->_values[i].Y_F03.assign(
-                    _random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                this->_values[i].Y_F04.assign(
-                    _random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                this->_values[i].Y_F05.assign(
-                    _random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                this->_values[i].Y_F06.assign(
-                    _random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                this->_values[i].Y_F07.assign(
-                    _random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                this->_values[i].Y_F08.assign(
-                    _random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                this->_values[i].Y_F09.assign(
-                    _random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                this->_values[i].Y_F10.assign(
-                    _random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F01.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F02.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F03.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F04.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F05.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F06.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F07.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F08.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F09.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
+                this->_values[i].Y_F10.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
                 this->template append_write_set<YKey, YValue>(0, &this->_keys[i], &this->_values[i]);
             } else {
                 this->template append_read_set<YKey, YValue>(0, &this->_keys[i], &this->_values[i]);
             }
         }
-        std::cout << "transaction " << this->txn_id << " has built!" << std::endl;
+        LOG(INFO) << "transaction " << this->txn_id << " has built!";
         this->insert_queue();
     }
 

@@ -25,18 +25,12 @@ int main() {
     YContext context;
     YWorkload workload = YWorkload<TwoPLTransaction>(db, context, execute_queue);
 
-    for(int i = 0 ; i < 1; i++) {
-        auto p = workload.next_transaction();    
-        p->execute();
-    } 
+    //generate workload
+    workload.generate_workload_thread(10000);
 
     //start tpl server
     TwoPL tpl(db, execute_queue, commit_queue);
     tpl.run();
 
-    // for(auto key : p->_keys)
-    //     LOG(INFO) << key;
-    // for(auto value : p->_values)
-    //     LOG(INFO) << value;
     return 0;
 }

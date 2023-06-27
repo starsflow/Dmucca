@@ -17,9 +17,9 @@
 
 #define STRUCT_INITLIST_REST_X(type, name) , name(name)
 
-#define STRUCT_HASH_FIRST_X(type, name) k->name
+#define STRUCT_HASH_FIRST_X(type, name) k.name
 
-#define STRUCT_HASH_REST_X(type, name) , k->name
+#define STRUCT_HASH_REST_X(type, name) , k.name
 
 #define STRUCT_LAYOUT_X(type, name) type name;
 
@@ -33,7 +33,7 @@
 
 #define STRUCT_EQ_X(type, name) \
     if (this->name != other.name) return false;
-   
+
 // #define STRUCT_FIELDPOS_X(type, name) name##_field,
 
 // the main macro
@@ -48,7 +48,6 @@
             APPLY_X_AND_Y(keyfields, STRUCT_EQ_X)                             \
             return true;                                                      \
         }                                                                     \
-                                                                              \
         static std::stringstream class_to_string() {                          \
             std::stringstream ss;                                             \
             keyfields(FIRST_KEY_TO_STRING, REST_KEY_TO_STRING);               \
@@ -60,6 +59,11 @@
             return ss;                                                        \
         }                                                                     \
     };                                                                        \
+    inline std::ostream& operator<<(std::ostream& os, const keyname& key) {   \
+        os << key.member_to_string().str();                                   \
+        return os;                                                            \
+    }                                                                         \
+                                                                              \
     class valuename {                                                         \
     public:                                                                   \
         valuefields(STRUCT_LAYOUT_X, STRUCT_LAYOUT_X) valuename() {}          \
@@ -80,10 +84,15 @@
             return ss;                                                        \
         }                                                                     \
     };                                                                        \
+    inline std::ostream& operator<<(std::ostream& os,                         \
+                                    const valuename& value) {                 \
+        os << value.member_to_string().str();                                 \
+        return os;                                                            \
+    }                                                                         \
     namespace std {                                                           \
     template <>                                                               \
     struct hash<keyname> {                                                    \
-        std::size_t operator()(keyname* k) const {                             \
+        std::size_t operator()(keyname k) const {                            \
             return Hash::hash(                                                \
                 keyfields(STRUCT_HASH_FIRST_X, STRUCT_HASH_REST_X));          \
         }                                                                     \

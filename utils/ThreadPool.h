@@ -13,6 +13,7 @@ public:
     ThreadPool(size_t);
     template <class F, class... Args>
     auto enqueue(F&& f, Args&&... args) -> std::future<typename std::result_of<F(Args...)>::type>;
+    size_t count;
     ~ThreadPool();
 
 private:
@@ -29,6 +30,7 @@ private:
 
 // the constructor just launches some amount of workers
 inline ThreadPool::ThreadPool(size_t threads) : stop(false) {
+    count = threads;
     for (size_t i = 0; i < threads; ++i)
         workers.emplace_back([this] {
             for (;;) {

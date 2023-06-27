@@ -17,6 +17,11 @@ private:
 public:
     SafeQuene() {}
 
+    std::size_t size() {
+        std::lock_guard<std::mutex> lock(_mutex);
+        return _queue.size();
+    }
+
     bool empty() const {
         std::lock_guard<std::mutex> lock(_mutex);
         return _queue.empty();
@@ -29,10 +34,11 @@ public:
         _condition.notify_one();
     }
 
-    T pop() {
+    T* pop() {
         std::unique_lock<std::mutex> lock(_mutex);
-        _condition.wait(lock, [this]{return !this->_queue.empty();});
-        T value = std::move(*(_queue.front()));
+        if(this->_queue.empty())
+            return nullptr;
+        T* value = _queue.front().get();
         _queue.pop();
         return value;
     }

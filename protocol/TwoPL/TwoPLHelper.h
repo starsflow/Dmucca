@@ -7,7 +7,6 @@
 
 #include <cstdint>
 #include "Table.h"
-#include "TwoPL.h"
 
 class TwoPLHelper {
 public:
@@ -18,7 +17,7 @@ public:
     |  63...32  |     31...24           |  ...  |   3               |   2                |  1        |  0         |
 */  
 #if CC_FLAG == WAIT_DIE
-    bool request_read_lock(ITable* table, const void* key) {
+    bool request_read_lock(ITable* table, void* key) {
         MetaType* meta_atomic = table->search_metadata(key);
         uint64_t meta = (*meta_atomic).load();
         
@@ -29,7 +28,7 @@ public:
         return true;
     }
 
-    bool request_write_lock(ITable* table, const void* key) {
+    bool request_write_lock(ITable* table, void* key) {
         MetaType* meta_atomic = table->search_metadata(key);
         uint64_t meta = (*meta_atomic).load();
         
@@ -42,7 +41,7 @@ public:
 #endif
 
 #if CC_FLAG == NO_WAIT
-    static bool set_write_lock_bit(ITable* table, const void* key, uint32_t txn_id) {
+    static bool set_write_lock_bit(ITable* table, void* key, uint32_t txn_id) {
         MetaType* meta_atomic = table->search_metadata(key);
         uint64_t meta = (*meta_atomic).load();
 
@@ -54,7 +53,7 @@ public:
         return true;
     }
 
-    static bool set_read_lock_bit(ITable* table, const void* key, uint32_t txn_id) {
+    static bool set_read_lock_bit(ITable* table, void* key, uint32_t txn_id) {
         MetaType* meta_atomic = table->search_metadata(key);
         uint64_t meta = (*meta_atomic).load();
 
@@ -65,7 +64,7 @@ public:
         return true;
     }
 
-    // static void reset_read_lock_bit(ITable* table, const void* key) {
+    // static void reset_read_lock_bit(ITable* table, void* key) {
     //     MetaType* meta_atomic = table->search_metadata(key);
     //     uint64_t meta = (*meta_atomic).load();
     //     meta = ~(~meta | 0x2);  
@@ -73,7 +72,7 @@ public:
     //     (*meta_atomic).store(meta);
     // }
 
-    // static void reset_write_lock_bit(ITable* table, const void* key) {
+    // static void reset_write_lock_bit(ITable* table, void* key) {
     //     MetaType* meta_atomic = table->search_metadata(key);
     //     uint64_t meta = (*meta_atomic).load();
     //     meta = ~(~meta | 0x3);
@@ -81,14 +80,14 @@ public:
     //     (*meta_atomic).store(meta);
     // }
 
-    static void reset_write_lock_bit(ITable* table, const void* key) {
+    static void reset_write_lock_bit(ITable* table, void* key) {
         MetaType* meta_atomic = table->search_metadata(key);
         uint64_t meta = (*meta_atomic).load();
         meta = meta & 0xfffffffc;
         (*meta_atomic).store(meta);
     }
 
-    static void resize_read_lock_number_bits(ITable* table, const void* key, bool is_add) {
+    static void resize_read_lock_number_bits(ITable* table, void* key, bool is_add) {
         MetaType* meta_atomic = table->search_metadata(key);
         uint64_t meta = (*meta_atomic).load();
         uint64_t read_lock_cnt = is_add ? ((meta >> 24) + 1) << 24 : ((meta >> 24) - 1) << 24;
@@ -100,14 +99,14 @@ public:
         (*meta_atomic).store(meta);
     }
 
-    static uint8_t get_read_lock_number_bits(ITable* table, const void* key) {
+    static uint8_t get_read_lock_number_bits(ITable* table, void* key) {
         MetaType* meta_atomic = table->search_metadata(key);
         uint64_t meta = (*meta_atomic).load();
 
         return (uint8_t)(meta >> 24);
     }
 
-    static uint32_t get_txn_id_bits(ITable* table, const void* key) {
+    static uint32_t get_txn_id_bits(ITable* table, void* key) {
         MetaType* meta_atomic = table->search_metadata(key);
         uint64_t meta = (*meta_atomic).load();
         return (uint32_t)(meta >> 32);
@@ -116,14 +115,14 @@ public:
 //for refactoring
 private:
     template <class Func>
-    void _apply_with_modified_meta(Func func, ITable* table, const void* key) {
+    void _apply_with_modified_meta(Func func, ITable* table, void* key) {
         MetaType* meta_atomic = table->search_metadata(key);
         uint64_t meta = (*meta_atomic).load();
         (*meta_atomic).store(Func(meta));
     }
 
     template <class Func>
-    auto _apply_with_unmodified_meta(Func func, ITable* table, const void* key) {
+    auto _apply_with_unmodified_meta(Func func, ITable* table, void* key) {
         MetaType* meta_atomic = table->search_metadata(key);
         uint64_t meta = (*meta_atomic).load();
         auto modified_meta = Func(meta);

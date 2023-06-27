@@ -12,7 +12,7 @@ enum class YCSBSkewPattern { BOTH, READ, WRITE };
 class YContext {
 public:
     YCSBSkewPattern skewPattern = YCSBSkewPattern::BOTH;
-    int readWriteRatio = 0;            // out of 100
+    int readWriteRatio = 50;            // out of 100
     int readOnlyTransaction = 0;       //  out of 100
     bool isUniform = true;
 
