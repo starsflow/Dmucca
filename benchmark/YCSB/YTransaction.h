@@ -16,8 +16,8 @@ template <class Transaction>
 class YTransaction : public Transaction {
 public:
     YContext _context;
-    YQuery _query;
     YRandom _random;
+    YQuery _query;
     YKey _keys[YContext::keysPerTransaction];
     YValue _values[YContext::keysPerTransaction];
 
@@ -25,7 +25,10 @@ public:
     virtual ~YTransaction() = default;
 
     YTransaction(Database* db, YContext& context, SafeQuene<Transaction>* queue)
-        : Transaction(db, queue), _context(context), _query(YQuery(context)) {}
+        : Transaction(db, queue),
+          _context(context),
+          _random(std::chrono::system_clock::now().time_since_epoch().count()),
+          _query(YQuery(context, _random)) {}
 
     void build_transaction() {
         this->set_txn_id();
@@ -43,12 +46,12 @@ public:
                 this->_values[i].Y_F08.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
                 this->_values[i].Y_F09.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
                 this->_values[i].Y_F10.assign(_random.a_string(YCSB_FIELD_SIZE, YCSB_FIELD_SIZE));
-                this->template append_write_set<YKey, YValue>(0, &this->_keys[i], &this->_values[i]);
+                this->template append_write_set<YKey, YValue>(0, this->_keys[i], this->_values[i]);
             } else {
-                this->template append_read_set<YKey, YValue>(0, &this->_keys[i], &this->_values[i]);
+                this->template append_read_set<YKey, YValue>(0, this->_keys[i], this->_values[i]);
             }
+            LOG(INFO) << "transaction keys :" << this->_keys[i];
         }
-        LOG(INFO) << "transaction " << this->txn_id << " has built!";
         this->insert_queue();
     }
 

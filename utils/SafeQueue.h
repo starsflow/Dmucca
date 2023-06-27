@@ -34,11 +34,11 @@ public:
         _condition.notify_one();
     }
 
-    T* pop() {
+    std::shared_ptr<T> pop() {
         std::unique_lock<std::mutex> lock(_mutex);
         if(this->_queue.empty())
             return nullptr;
-        T* value = _queue.front().get();
+        std::shared_ptr<T> value = _queue.front();
         _queue.pop();
         return value;
     }

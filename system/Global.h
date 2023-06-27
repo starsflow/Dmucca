@@ -28,4 +28,4 @@
 #include <gtest/gtest.h>
 #include <jemalloc/jemalloc.h>
 
-enum class TransactionResult { COMMIT, READY_TO_COMMIT, ABORT, ABORT_NORETRY };
+enum class TransactionResult {READY, COMMIT, READY_TO_COMMIT, ABORT, ABORT_NORETRY };

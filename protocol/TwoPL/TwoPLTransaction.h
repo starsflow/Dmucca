@@ -4,16 +4,16 @@
  */
 #pragma once
 
+#include "Counter.h"
 #include "Database.h"
 #include "Global.h"
+#include "SafeQueue.h"
 #include "Table.h"
 #include "TwoPLHelper.h"
-#include "Counter.h"
-#include "SafeQueue.h"
 
 struct RWItem {
     void* key;
-    //storage the read results
+    // storage the read results
     void* value;
     uint32_t table_id;
 
@@ -31,56 +31,55 @@ public:
 public:
     TwoPLTransaction(Database* db, SafeQuene<TwoPLTransaction>* queue) : _ready_execute_queue(queue), _db(db) {}
 
+    TwoPLTransaction(std::vector<RWItem> rs, std::vector<RWItem> ws, uint32_t tid, TransactionResult sts)
+        : read_set(rs), write_set(ws), txn_id(tid), status(sts) {}
+
     ~TwoPLTransaction() {
         read_set.clear();
         write_set.clear();
     }
 
-    ITable* get_table(int table_id) {
-        return static_cast<ITable *>(_db->find_table(table_id));
-    }
+    ITable* get_table(int table_id) { return static_cast<ITable*>(_db->find_table(table_id)); }
 
     void set_txn_id() {
         txn_id = Counter::generate_unique_id();
+        LOG(INFO) << "the generated id is " << txn_id;
     }
 
-    template<class KeyType>
-    RWItem* get_read_write_item(std::vector<RWItem> &set, const KeyType* key) {
-        for(std::size_t i = 0; i < set.size(); i++){
-            if(*static_cast<KeyType*>(set[i].key) == *key)
-                return &set[i]; 
+    template <class KeyType>
+    RWItem* get_read_write_item(std::vector<RWItem>& set, const KeyType* key) {
+        for (std::size_t i = 0; i < set.size(); i++) {
+            if (*static_cast<KeyType*>(set[i].key) == *key) return &set[i];
         }
         return nullptr;
     }
 
-    template<class KeyType, class ValueType>
+    template <class KeyType, class ValueType>
     void append_read_set(std::uint32_t table_id, KeyType* key, ValueType* value) {
         RWItem* read_item = get_read_write_item<KeyType>(read_set, key);
-        if(!read_item) {
+        if (!read_item) {
             read_set.emplace_back(RWItem(key, nullptr, table_id));
-        } 
+        }
     }
 
-    template<class KeyType, class ValueType>
+    template <class KeyType, class ValueType>
     void append_write_set(std::uint32_t table_id, KeyType* key, ValueType* value) {
         RWItem* read_item = get_read_write_item<KeyType>(read_set, key);
         RWItem* write_item = get_read_write_item<KeyType>(write_set, key);
-        if(!write_item) {
+        if (!write_item) {
             write_set.emplace_back(RWItem(key, value, table_id));
         } else {
             write_item->value = value;
         }
 
-        if(read_item) {
+        if (read_item) {
             read_item->value = value;
         } else {
             read_set.emplace_back(RWItem(key, value, table_id));
         }
     }
 
-    void insert_queue() {
-        _ready_execute_queue->push(*this);
-    }
+    void insert_queue() { _ready_execute_queue->push(TwoPLTransaction(read_set, write_set, txn_id, status)); }
 
     // template<class KeyType, class ValueType>
     // bool search_for_read(std::uint32_t table_id, KeyType* key, ValueType* value) {
@@ -97,7 +96,7 @@ public:
     //     if(!read_item) {
     //         read_item = new RWItem(key, nullptr, table_id);
     //         read_set.emplace_back(*read_item);
-    //     } 
+    //     }
     //     return true;
     // }
 
@@ -111,7 +110,7 @@ public:
     //     if(!can_write_lock && !(read_item || write_item)) {
     //         return false;
     //     }
-        
+
     //     //whether the record to be updated is in txn's read set
     //     if(read_item) {
     //         read_item->value = value;

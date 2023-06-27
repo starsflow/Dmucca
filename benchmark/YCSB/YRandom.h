@@ -10,6 +10,8 @@
 
 class YRandom : public Random {
 public:
+    YRandom(uint64_t seed) : Random(seed) {};
+
     std::string generate_random_str(std::size_t length) {
         std::string characters = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         auto characters_len = characters.size();

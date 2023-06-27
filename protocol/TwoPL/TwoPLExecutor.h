@@ -53,15 +53,22 @@ public:
         set.clear();
     }
 
-    bool request_all_locks(TwoPLTransaction& txn) {
+    bool request_all_locks(TwoPLTransaction txn) {
         std::vector<RWItem> locked_read_set, locked_write_set;
         for (auto write_item : txn.write_set) {
+            LOG(INFO) << "transaction in set includes " << *static_cast<YKey*>((write_item.key));
+        }
+
+        for (auto write_item : txn.write_set) {
+            LOG(INFO) << *static_cast<YKey*>((write_item.key)) << " will be locked";
             ITable* table = get_table(write_item.table_id);
             bool can_write_locked = TwoPLHelper::set_write_lock_bit(table, write_item.key, write_item.table_id);
             if (!can_write_locked) {
+                LOG(INFO) << *static_cast<YKey*>((write_item.key)) << " has not be locked";
                 release_read_write_locks(locked_write_set, false);
                 return false;
             } else {
+                LOG(INFO) << *static_cast<YKey*>((write_item.key)) << " has be locked";
                 locked_write_set.push_back(write_item);
             }
         }
@@ -85,7 +92,7 @@ public:
         return true;
     }
 
-    bool commit_txn(TwoPLTransaction& txn) {
+    bool commit_txn(TwoPLTransaction txn) {
         for (auto& read_item : txn.read_set) {
             if (!read_item.value) {
                 ITable* table = get_table(read_item.table_id);
@@ -108,29 +115,30 @@ public:
         }
 
         release_read_write_locks(txn.read_set, true);
-        release_read_write_locks(txn.write_set, true);
+        release_read_write_locks(txn.write_set, false);
         return true;
     }
 
     void execute_thread(ThreadPool& tp, SafeQuene<TwoPLTransaction>* queue) {
         std::thread bt([this, &tp, queue]() {
-            TwoPLTransaction* txn;
             while (true) {
-                if ((txn = queue->pop())) {
+                std::shared_ptr<TwoPLTransaction> txn = queue->pop();
+                if (txn) {
                     tp.enqueue(
-                        [txn](TwoPLExecutor* executor) {
-                            LOG(INFO) << "transaction " << txn->txn_id << " start processing!";
-                            if (executor->request_all_locks(*txn)) {
-                                txn->status = TransactionResult::READY_TO_COMMIT;
-                                executor->_ready_commit_queue->push(*txn);
-                                LOG(INFO) << "transaction " << txn->txn_id << " is to commit!";
+                        [](TwoPLTransaction txn, TwoPLExecutor* executor) {
+                            LOG(INFO) << "transaction " << txn.txn_id << " start processing!";
+                            bool can_request_all_locks = executor->request_all_locks(txn);
+                            if (can_request_all_locks) {
+                                txn.status = TransactionResult::READY_TO_COMMIT;
+                                executor->_ready_commit_queue->push(txn);
+                                LOG(INFO) << "transaction " << txn.txn_id << " is to commit!";
                             } else {
-                                txn->status = TransactionResult::ABORT;
-                                executor->_ready_execute_queue->push(*txn);
-                                LOG(INFO) << "transaction " << txn->txn_id << " is to re-execute!";
+                                txn.status = TransactionResult::ABORT;
+                                executor->_ready_execute_queue->push(txn);
+                                // LOG(INFO) << "transaction " << txn.txn_id << " is to re-execute!";
                             }
                         },
-                        this);
+                        *txn, this);
                 }
             }
         });
@@ -138,51 +146,23 @@ public:
     }
 
     void main_thread(ThreadPool& tp, SafeQuene<TwoPLTransaction>* queue) {
-        TwoPLTransaction* txn;
         while (true) {
-            if ((txn = queue->pop())) {
+            std::shared_ptr<TwoPLTransaction> txn = queue->pop();
+            if (txn) {
                 tp.enqueue(
-                    [txn](TwoPLExecutor* executor) {
-                        if (executor->commit_txn(*txn)) {
-                            txn->status = TransactionResult::COMMIT;
-                            LOG(INFO) << "transaction " << txn->txn_id << " has committed!";
+                    [](TwoPLTransaction txn, TwoPLExecutor* executor) {
+                        if (executor->commit_txn(txn)) {
+                            txn.status = TransactionResult::COMMIT;
+                            LOG(INFO) << "transaction " << txn.txn_id << " has committed!";
                         } else {
-                            txn->status = TransactionResult::ABORT_NORETRY;
-                            LOG(INFO) << "transaction " << txn->txn_id << " has aborted with no try!";
+                            txn.status = TransactionResult::ABORT_NORETRY;
+                            LOG(INFO) << "transaction " << txn.txn_id << " has aborted with no try!";
                         }
                     },
-                    this);
+                    *txn, this);
             }
         }
     }
-
-    // void base_thread_1(ThreadPool& tp, SafeQuene<TwoPLTransaction>* queue) {
-    //     std::thread bt([this, &tp, queue]() {
-    //         while (true) {
-    //             if (!queue->empty()) {
-    //                 LOG(INFO) << "before pop the size of queue1 is " << queue->size();
-    //                 tp.enqueue(
-    //                 [queue](TwoPLExecutor* executor) {
-    //                     LOG(INFO) << "the size of queue1 is " << queue->size();
-    //                     TwoPLTransaction txn = queue->pop();
-    //                     LOG(INFO) << "after pop the size of queue1 is " << queue->size();
-    //                     LOG(INFO) << "transaction " << txn.txn_id << " start processing!";
-    //                     if (executor->request_all_locks(txn)) {
-    //                         txn.status = TransactionResult::READY_TO_COMMIT;
-    //                         executor->_ready_commit_queue->push(txn);
-    //                         LOG(INFO) << "transaction " << txn.txn_id << " is to commit!";
-    //                     } else {
-    //                         txn.status = TransactionResult::ABORT;
-    //                         executor->_ready_execute_queue->push(txn);
-    //                         LOG(INFO) << "transaction " << txn.txn_id << " is to re-execute!";
-    //                     }
-    //                 },
-    //                 this);
-    //             }
-    //         }
-    //     });
-    //     bt.detach();
-    // }
 
     void execute_thread_run() {
         LOG(WARNING) << "execute threads start!";
