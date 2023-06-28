@@ -116,6 +116,7 @@ public:
 
         release_read_write_locks(txn.read_set, true);
         release_read_write_locks(txn.write_set, false);
+        LOG(INFO) << "transaction " << txn.txn_id << " has unlocked";
         return true;
     }
 

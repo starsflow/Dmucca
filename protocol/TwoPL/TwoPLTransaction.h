@@ -55,27 +55,31 @@ public:
     }
 
     template <class KeyType, class ValueType>
-    void append_read_set(std::uint32_t table_id, KeyType* key, ValueType* value) {
-        RWItem* read_item = get_read_write_item<KeyType>(read_set, key);
+    void append_read_set(std::uint32_t table_id, KeyType& key, ValueType& value) {
+        KeyType* new_key = new KeyType(key);
+        ValueType* new_value = new ValueType(value);
+        RWItem* read_item = get_read_write_item<KeyType>(read_set, new_key);
         if (!read_item) {
-            read_set.emplace_back(RWItem(key, nullptr, table_id));
+            read_set.emplace_back(RWItem(new_key, nullptr, table_id));
         }
     }
 
     template <class KeyType, class ValueType>
-    void append_write_set(std::uint32_t table_id, KeyType* key, ValueType* value) {
-        RWItem* read_item = get_read_write_item<KeyType>(read_set, key);
-        RWItem* write_item = get_read_write_item<KeyType>(write_set, key);
+    void append_write_set(std::uint32_t table_id, KeyType& key, ValueType& value) { 
+        KeyType* new_key = new KeyType(key);
+        ValueType* new_value = new ValueType(value);
+        RWItem* read_item = get_read_write_item<KeyType>(read_set, new_key);
+        RWItem* write_item = get_read_write_item<KeyType>(write_set, new_key);
         if (!write_item) {
-            write_set.emplace_back(RWItem(key, value, table_id));
+            write_set.emplace_back(RWItem(new_key, new_value, table_id));
         } else {
-            write_item->value = value;
+            write_item->value = new_value;
         }
 
         if (read_item) {
-            read_item->value = value;
+            read_item->value = new_value;
         } else {
-            read_set.emplace_back(RWItem(key, value, table_id));
+            read_set.emplace_back(RWItem(new_key, new_value, table_id));
         }
     }
 

@@ -27,9 +27,9 @@ public:
     YTransaction(Database* db, YContext& context, SafeQuene<Transaction>* queue)
         : Transaction(db, queue),
           _context(context),
-          _random(std::chrono::system_clock::now().time_since_epoch().count()),
+          _random(0),
           _query(YQuery(context, _random)) {}
-
+//std::chrono::system_clock::now().time_since_epoch().count()
     void build_transaction() {
         this->set_txn_id();
 

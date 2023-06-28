@@ -26,7 +26,7 @@ int main() {
     YWorkload workload = YWorkload<TwoPLTransaction>(db, context, execute_queue);
 
     //generate workload
-    workload.generate_workload_thread(1);
+    workload.generate_workload_thread(10000);
 
     //start tpl server
     TwoPL tpl(db, execute_queue, commit_queue);
