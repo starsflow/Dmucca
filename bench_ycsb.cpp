@@ -4,7 +4,7 @@
  */
 #include "Global.h"
 #include "YCSB/YTable.h"
-#include "YCSB/YTransaction.h"
+#include "YCSB/YTransaction.h" 
 #include "YCSB/YWorkload.h"
 #include "Counter.h"
 #include "TwoPL/TwoPL.h"
@@ -36,11 +36,11 @@ int main(int argc, char* argv[]) {
     //initialize the task queue
     SafeQuene<TwoPLTransaction>* execute_queue = new SafeQuene<TwoPLTransaction>();
     SafeQuene<TwoPLTransaction>* commit_queue = new SafeQuene<TwoPLTransaction>();
-    YContext context;
-    YWorkload workload = YWorkload<TwoPLTransaction>(db, context, execute_queue);
 
     //generate workload
-    workload.generate_workload_thread(100000);
+    YContext context;
+    YWorkload workload = YWorkload<TwoPLTransaction>(db, context, execute_queue);
+    workload.generate_workload_thread(1);
 
     //start tpl server
     TwoPL tpl(db, execute_queue, commit_queue);

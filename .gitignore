@@ -42,4 +42,4 @@ CMakeFiles/
 googletest/
 external/
 test*
-log/*
+log/**

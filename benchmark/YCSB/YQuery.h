@@ -23,6 +23,7 @@ public:
     YQuery(YContext& context, YRandom random) : _context(context), _random(random) {
         int readOnly = _random.uniform_dist(1, 100);
         std::unordered_set<std::size_t> keys;
+        Zipf::globalZipf().init(YContext::keysPerTable, context.zipfFactor);
         
         for (auto i = 0u; i < YContext::keysPerTransaction; i++) {
             // read or write

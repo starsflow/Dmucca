@@ -30,7 +30,6 @@ public:
           _context(context),
           _random(std::chrono::system_clock::now().time_since_epoch().count()),
           _query(YQuery(context, _random)) {}
-//std::chrono::system_clock::now().time_since_epoch().count()
     void build_transaction() {
         this->set_txn_id();
 
@@ -62,9 +61,9 @@ public:
         os << "transaction " << txn.txn_id << "'s key-value pairs are following:\n";
         for(size_t i = 0; i < YContext::keysPerTransaction; i++){
             if(txn._update[i])
-                os << "w:" << txn._keys[i] << ":" << txn._values[i] << "\n";
+                os << "w:" << txn._keys[i] << ":\t" << txn._values[i] << "\n";
             else
-                os << "r:" << txn._keys[i] << ":" << txn._values[i] << "\n";
+                os << "r:" << txn._keys[i] << ":\t" << txn._values[i] << "\n";
         }
         os << "transaction " << txn.txn_id << "'s key-value pairs are above.\n";
         return os;
