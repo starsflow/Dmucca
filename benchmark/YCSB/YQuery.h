@@ -49,6 +49,7 @@ public:
                 auto result = keys.find(key);
                 if (result == keys.end()) {
                     this->Y_KEY[i] = key;
+                    keys.emplace(key);
                     break;
                 }
             } while (true);

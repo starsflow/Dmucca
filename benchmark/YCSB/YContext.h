@@ -16,6 +16,6 @@ public:
     int readOnlyTransaction = 0;       //  out of 100
     bool isUniform = true;
 
-    static const std::size_t keysPerTransaction = 10;
+    static const std::size_t keysPerTransaction = 3;
     static const std::size_t keysPerTable = 100;
 };

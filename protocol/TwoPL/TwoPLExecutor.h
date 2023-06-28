@@ -55,9 +55,9 @@ public:
 
     bool request_all_locks(TwoPLTransaction txn) {
         std::vector<RWItem> locked_read_set, locked_write_set;
-        for (auto write_item : txn.write_set) {
-            LOG(INFO) << "transaction in set includes " << *static_cast<YKey*>((write_item.key));
-        }
+        // for (auto write_item : txn.write_set) {
+        //     LOG(INFO) << "transaction in set includes " << *static_cast<YKey*>((write_item.key));
+        // }
 
         for (auto write_item : txn.write_set) {
             LOG(INFO) << *static_cast<YKey*>((write_item.key)) << " will be locked";
@@ -116,7 +116,7 @@ public:
 
         release_read_write_locks(txn.read_set, true);
         release_read_write_locks(txn.write_set, false);
-        LOG(INFO) << "transaction " << txn.txn_id << " has unlocked";
+        std::cout << "transaction " << txn.txn_id << " has unlocked" << std::endl;
         return true;
     }
 

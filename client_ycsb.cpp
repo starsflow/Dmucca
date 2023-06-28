@@ -2,6 +2,7 @@
  * @Author: lxc
  * @Date: 05/16/2023
  */
+#include "Global.h"
 #include "YCSB/YTable.h"
 #include "YCSB/YTransaction.h"
 #include "YCSB/YWorkload.h"
@@ -12,8 +13,21 @@
 
 std::atomic<uint32_t> Counter::_counter = 0;
 
-int main() {
-    //initialize the database and table
+void signal_handler(int signal) {
+    google::ShutdownGoogleLogging();
+    std::cout << "logs flush into file!" << std::endl;
+    std::exit(0);
+}
+
+int main(int argc, char* argv[]) {
+    //initialize glog
+    std::string root_path(argv[1]);
+    std::string log_path(root_path + "/log/tpl_");
+    google::InitGoogleLogging(argv[0]);
+    google::SetLogDestination(google::INFO, log_path.c_str());
+    signal(SIGINT, signal_handler);
+
+    // initialize the database and table
     auto *db = new Database();
     auto *table = static_cast<YTable *>(db->create_table<YKey, YValue>());
     table->initialize_table();
@@ -26,7 +40,7 @@ int main() {
     YWorkload workload = YWorkload<TwoPLTransaction>(db, context, execute_queue);
 
     //generate workload
-    workload.generate_workload_thread(10000);
+    workload.generate_workload_thread(100000);
 
     //start tpl server
     TwoPL tpl(db, execute_queue, commit_queue);
