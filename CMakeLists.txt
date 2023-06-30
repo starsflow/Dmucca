@@ -17,4 +17,4 @@ else()
 endif()
 
 # add_executable(server server.cpp)
-add_executable(ycsb bench_ycsb.cpp)
+add_executable(bench_ycsb bench_ycsb.cpp)

@@ -14,9 +14,9 @@ public:
     YCSBSkewPattern skewPattern = YCSBSkewPattern::BOTH;
     int readWriteRatio = 0;            // out of 100
     int readOnlyTransaction = 0;       //  out of 100
-    bool isUniform = false;
+    bool isUniform = true;
     double zipfFactor = 2;
 
-    static const std::size_t keysPerTransaction = 200;
-    static const std::size_t keysPerTable = 10000;
+    std::size_t keysPerTransaction = 3;
+    std::size_t keysPerTable = 100;
 };

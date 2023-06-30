@@ -12,18 +12,18 @@
 
 template <class Transaction>
 class YWorkload {
+public:
+    using TransactionType = YTransaction<Transaction>;
+
 private:
     Database* _db;
-    YContext _context;
-    SafeQuene<Transaction>* _queue;
+    SafeQueue<TransactionType>* _queue;
 
 public:
-    YWorkload(Database* db, YContext& context, SafeQuene<Transaction>* queue)
-        : _db(db), _context(context), _queue(queue) {}
+    YWorkload(Database* db, SafeQueue<TransactionType>* queue) : _db(db), _queue(queue) {}
 
-    std::unique_ptr<YTransaction<Transaction>> next_transaction() {
-        std::unique_ptr<YTransaction<Transaction>> p =
-            std::make_unique<YTransaction<Transaction>>(_db, _context, _queue);
+    std::unique_ptr<TransactionType> next_transaction() {
+        auto p = std::make_unique<TransactionType>(_db);
         return p;
     }
 
@@ -31,7 +31,7 @@ public:
         std::thread bt_thread([this, txn_num]() {
             for (size_t i = 0; i < txn_num; i++) {
                 auto p = this->next_transaction();
-                p->build_transaction();
+                p->insert_queue(_queue);
             }
         });
         bt_thread.detach();

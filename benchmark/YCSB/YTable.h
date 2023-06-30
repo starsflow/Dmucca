@@ -13,15 +13,13 @@
 #include "Database.h"
 
 class YTable : public Table<YKey, YValue> {
-private:
-// only one table is needed in ycsb
-//    Database* _db;
-//    Table<YKey, YValue>* _table;
-    YRandom _random;
-
 public:
     void initialize_table(){
-        for(std::size_t i = 0; i < YContext::keysPerTable; i++) {
+        YContext _context;
+        YRandom _random(std::chrono::system_clock::now().time_since_epoch().count());
+
+        std::cout << _context.keysPerTable << std::endl;
+        for(std::size_t i = 0; i < _context.keysPerTable; i++) {
             YKey key;
             key.Y_KEY = i;
             YValue* value = new YValue();

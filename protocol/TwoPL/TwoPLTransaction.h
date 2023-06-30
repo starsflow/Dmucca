@@ -25,19 +25,20 @@ public:
     std::vector<RWItem> read_set, write_set;
     uint32_t txn_id;
     TransactionResult status;
-    SafeQuene<TwoPLTransaction>* _ready_execute_queue;
     Database* _db;
 
 public:
-    TwoPLTransaction(Database* db, SafeQuene<TwoPLTransaction>* queue) : _ready_execute_queue(queue), _db(db) {}
-
-    TwoPLTransaction(std::vector<RWItem> rs, std::vector<RWItem> ws, uint32_t tid, TransactionResult sts)
-        : read_set(rs), write_set(ws), txn_id(tid), status(sts) {}
+    TwoPLTransaction(Database* db) : _db(db) {
+        status = TransactionResult::READY;
+        txn_id = 0xffffffff;
+    }
 
     ~TwoPLTransaction() {
         read_set.clear();
         write_set.clear();
     }
+
+    virtual TransactionResult execute() = 0;
 
     ITable* get_table(int table_id) { return static_cast<ITable*>(_db->find_table(table_id)); }
 
@@ -55,90 +56,81 @@ public:
     }
 
     template <class KeyType, class ValueType>
-    void append_read_set(std::uint32_t table_id, KeyType& key, ValueType& value) {
+    ValueType append_read_set(std::uint32_t table_id, KeyType& key) {
         KeyType* new_key = new KeyType(key);
-        ValueType* new_value = new ValueType(value);
         RWItem* read_item = get_read_write_item<KeyType>(read_set, new_key);
-        if (!read_item) {
-            read_set.emplace_back(RWItem(new_key, nullptr, table_id));
+        RWItem* write_item = get_read_write_item<KeyType>(read_set, new_key);
+
+        if (write_item) {
+            auto* new_value = new ValueType(*static_cast<ValueType*>(write_item->value));
+            if (read_item) {
+                read_item->value = new_value;
+            } else {
+                read_set.emplace_back(RWItem(new_key, new_value, table_id));
+            }
+            return *new_value;
+        } else {
+            if (read_item) {
+                return *static_cast<ValueType*>(read_item->value);
+            } else {
+                ITable* table = get_table(table_id);
+                read_set.emplace_back(RWItem(new_key, nullptr, table_id));
+                return *static_cast<ValueType*>(table->search_value(&key));
+            }
         }
     }
 
     template <class KeyType, class ValueType>
-    void append_write_set(std::uint32_t table_id, KeyType& key, ValueType& value) { 
+    void append_write_set(std::uint32_t table_id, KeyType& key, ValueType& value) {
         KeyType* new_key = new KeyType(key);
         ValueType* new_value = new ValueType(value);
-        RWItem* read_item = get_read_write_item<KeyType>(read_set, new_key);
         RWItem* write_item = get_read_write_item<KeyType>(write_set, new_key);
         if (!write_item) {
             write_set.emplace_back(RWItem(new_key, new_value, table_id));
         } else {
             write_item->value = new_value;
         }
-
-        if (read_item) {
-            read_item->value = new_value;
-        } else {
-            read_set.emplace_back(RWItem(new_key, new_value, table_id));
-        }
     }
 
-    void insert_queue() { _ready_execute_queue->push(TwoPLTransaction(read_set, write_set, txn_id, status)); }
+    void release_read_write_locks(std::vector<RWItem> set, bool is_read_lock) {
+        for (auto item : set) {
+            ITable* table = get_table(item.table_id);
+            is_read_lock ? TwoPLHelper::resize_read_lock_number_bits(table, item.key, false)
+                         : TwoPLHelper::reset_write_lock_bit(table, item.key);
+        }
+        set.clear();
+    }
 
-    // template<class KeyType, class ValueType>
-    // bool search_for_read(std::uint32_t table_id, KeyType* key, ValueType* value) {
-    //     ITable* table = get_table(table_id);
-    //     RWItem* read_item = get_read_write_item(read_set, key);
-    //     RWItem* write_item = get_read_write_item(write_set, key);
+    template <class KeyType, class ValueType>
+    std::pair<bool, ValueType> read(std::uint32_t table_id, KeyType& key) {
+        // request locks
+        auto* new_key = new KeyType(key);
+        auto* table = get_table(table_id);
+        bool can_read_locked = TwoPLHelper::set_read_lock_bit(table, new_key, txn_id);
+        if (!can_read_locked) {
+            LOG(INFO) << key << " has not be locked";
+            release_read_write_locks(read_set, true);
+            release_read_write_locks(write_set, false);
+            return std::pair<bool, ValueType>(false, ValueType());
+        }
+        LOG(INFO) << key << " has be locked";
+        ValueType res = this->append_read_set<KeyType, ValueType>(table_id, key);
+        return std::pair<bool, ValueType>(true, res);
+    }
 
-    //     //abort if the record is write locked by other txn
-    //     bool can_read_locked = TwoPLHelper::set_read_lock_bit(table, key);
-    //     if(!can_read_locked && !write_item) {
-    //         return false;
-    //     }
-
-    //     if(!read_item) {
-    //         read_item = new RWItem(key, nullptr, table_id);
-    //         read_set.emplace_back(*read_item);
-    //     }
-    //     return true;
-    // }
-
-    // template<class KeyType, class ValueType>
-    // bool search_for_write(std::uint32_t table_id, KeyType* key, ValueType* value) {
-    //     ITable* table = get_table(table_id);
-    //     RWItem* read_item = get_read_write_item(read_set, key);
-    //     RWItem* write_item = get_read_write_item(write_set, key);
-
-    //     bool can_write_lock = TwoPLHelper::set_write_lock_bit(table, key);
-    //     if(!can_write_lock && !(read_item || write_item)) {
-    //         return false;
-    //     }
-
-    //     //whether the record to be updated is in txn's read set
-    //     if(read_item) {
-    //         read_item->value = value;
-    //     }
-
-    //     if(!write_item) {
-    //         write_item = new RWItem(key, value, table_id);
-    //         write_set.emplace_back(*write_item);
-    //     } else {
-    //         write_item->value = value;
-    //     }
-    //     return true;
-    // }
-
-    // void release_read_write_set_lock(std::uint32_t table_id) {
-    //     ITable* table = get_table(table_id);
-    //     for(auto read_item : read_set) {
-    //         auto* key = read_item.key;
-    //         TwoPLHelper::reset_read_lock_bit(table, key);
-    //     }
-
-    //     for(auto write_item : write_set) {
-    //         auto* key = write_item.key;
-    //         TwoPLHelper::reset_write_lock_bit(table, key);
-    //     }
-    // }
+    template <class KeyType, class ValueType>
+    bool update(std::uint32_t table_id, KeyType& key, ValueType& value) {
+        // request locks
+        auto* table = get_table(table_id);
+        auto* new_key = new KeyType(key);
+        bool can_write_locked = TwoPLHelper::set_write_lock_bit(table, new_key, txn_id);
+        if (!can_write_locked) {
+            LOG(INFO) << key << " has not be locked";
+            release_read_write_locks(read_set, true);
+            release_read_write_locks(write_set, false);
+            return false;
+        }
+        this->append_write_set<KeyType, ValueType>(table_id, key, value);
+        return true;
+    }
 };

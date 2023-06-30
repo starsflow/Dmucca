@@ -30,7 +30,6 @@ public:
         } else {
             v = static_cast<int>(_n * std::pow(_eta * u - _eta + 1, _alpha));
         }
-        std::cout << u << ":" << v << std::endl;
         DCHECK(v >= 0 && v < _n);
         return v;
     }

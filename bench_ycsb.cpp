@@ -33,17 +33,16 @@ int main(int argc, char* argv[]) {
     table->initialize_table();
     // table->print_table();
 
-    //initialize the task queue
-    SafeQuene<TwoPLTransaction>* execute_queue = new SafeQuene<TwoPLTransaction>();
-    SafeQuene<TwoPLTransaction>* commit_queue = new SafeQuene<TwoPLTransaction>();
+    // initialize the task queue
+    auto* execute_queue = new SafeQueue<YTransaction<TwoPLTransaction>>();
+    auto* commit_queue = new SafeQueue<YTransaction<TwoPLTransaction>>();
 
     //generate workload
-    YContext context;
-    YWorkload workload = YWorkload<TwoPLTransaction>(db, context, execute_queue);
-    workload.generate_workload_thread(1);
+    auto workload = YWorkload<TwoPLTransaction>(db, execute_queue);
+    workload.generate_workload_thread(10000);
 
     //start tpl server
-    TwoPL tpl(db, execute_queue, commit_queue);
+    TwoPL<YWorkload<TwoPLTransaction>::TransactionType> tpl(db, execute_queue, commit_queue);
     tpl.run();
 
     return 0;

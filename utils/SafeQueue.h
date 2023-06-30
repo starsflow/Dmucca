@@ -8,14 +8,14 @@
 #include "Global.h"
 
 template <class T>
-class SafeQuene {
+class SafeQueue {
 private:
     mutable std::mutex _mutex;
     std::queue<std::shared_ptr<T>> _queue;
     std::condition_variable _condition;
 
 public:
-    SafeQuene() {}
+    SafeQueue() {}
 
     std::size_t size() {
         std::lock_guard<std::mutex> lock(_mutex);

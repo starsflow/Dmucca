@@ -13,15 +13,16 @@
 #include "ThreadPool.h"
 #include "TwoPLTransaction.h"
 
+template<class Transaction>
 class TwoPLExecutor {
 private:
     Database* _db;
     ThreadPool _execute_tp, _commit_tp;
-    SafeQuene<TwoPLTransaction>*_ready_execute_queue, *_ready_commit_queue;
+    SafeQueue<Transaction>*_ready_execute_queue, *_ready_commit_queue;
 
 public:
-    TwoPLExecutor(Database* db, SafeQuene<TwoPLTransaction>* ready_execute_queue,
-                  SafeQuene<TwoPLTransaction>* ready_commit_queue)
+    TwoPLExecutor(Database* db, SafeQueue<Transaction>* ready_execute_queue,
+                  SafeQueue<Transaction>* ready_commit_queue)
         : _db(db),
           _execute_tp(THREAD_CNT / 2),
           _commit_tp(THREAD_CNT / 2),
@@ -53,90 +54,42 @@ public:
         set.clear();
     }
 
-    bool request_all_locks(TwoPLTransaction txn) {
-        std::vector<RWItem> locked_read_set, locked_write_set;
-        // for (auto write_item : txn.write_set) {
-        //     LOG(INFO) << "transaction in set includes " << *static_cast<YKey*>((write_item.key));
-        // }
-
-        for (auto write_item : txn.write_set) {
-            LOG(INFO) << *static_cast<YKey*>((write_item.key)) << " will be locked";
-            ITable* table = get_table(write_item.table_id);
-            bool can_write_locked = TwoPLHelper::set_write_lock_bit(table, write_item.key, write_item.table_id);
-            if (!can_write_locked) {
-                LOG(INFO) << *static_cast<YKey*>((write_item.key)) << " has not be locked";
-                release_read_write_locks(locked_write_set, false);
-                return false;
-            } else {
-                LOG(INFO) << *static_cast<YKey*>((write_item.key)) << " has be locked";
-                locked_write_set.push_back(write_item);
-            }
-        }
-
-        for (auto read_item : txn.read_set) {
-            ITable* table = get_table(read_item.table_id);
-            bool can_read_locked = TwoPLHelper::set_read_lock_bit(table, read_item.key, txn.txn_id);
-            // check whether the record is occupied by other transaction's read or write lock
-            // executing here indicates that all read locks have been successfully added
-
-            // all write locks of the transaction haven been added
-            if (!read_item.value && !can_read_locked) {
-                release_read_write_locks(locked_write_set, false);
-                release_read_write_locks(locked_read_set, true);
-                return false;
-            } else {
-                locked_read_set.push_back(read_item);
-            }
-        }
-
-        return true;
-    }
-
-    bool commit_txn(TwoPLTransaction txn) {
-        for (auto& read_item : txn.read_set) {
-            if (!read_item.value) {
-                ITable* table = get_table(read_item.table_id);
-                read_item.value = je_malloc(table->get_value_size());
-                auto* value = table->search_value(read_item.key);
-                if (value)
-                    memcpy(read_item.value, value, table->get_value_size());
-                else
-                    return false;
-            }
-        }
-
+    bool commit_txn(Transaction txn) {
         for (auto& write_item : txn.write_set) {
             ITable* table = get_table(write_item.table_id);
             auto* value = table->search_value(write_item.key);
-            if (value)
+            if (value) {
                 memcpy(value, write_item.value, table->get_value_size());
-            else
+            } else {
                 table->insert(write_item.key, 0x1, write_item.value);
+            }
         }
 
         release_read_write_locks(txn.read_set, true);
         release_read_write_locks(txn.write_set, false);
-        std::cout << "transaction " << txn.txn_id << " has unlocked" << std::endl;
+        // std::cout << "transaction " << txn.txn_id << " has unlocked" << std::endl;
         return true;
     }
 
-    void execute_thread(ThreadPool& tp, SafeQuene<TwoPLTransaction>* queue) {
+    void execute_thread(ThreadPool& tp, SafeQueue<Transaction>* queue) {
         std::thread bt([this, &tp, queue]() {
             while (true) {
-                std::shared_ptr<TwoPLTransaction> txn = queue->pop();
+                std::shared_ptr<Transaction> txn = queue->pop();
                 if (txn) {
                     tp.enqueue(
-                        [](TwoPLTransaction txn, TwoPLExecutor* executor) {
+                        [](Transaction txn, TwoPLExecutor* executor) {
                             LOG(INFO) << "transaction " << txn.txn_id << " start processing!";
-                            bool can_request_all_locks = executor->request_all_locks(txn);
-                            if (can_request_all_locks) {
-                                txn.status = TransactionResult::READY_TO_COMMIT;
+                            if(txn.txn_id == 0xffffffff) {
+                                txn.txn_id = Counter::generate_unique_id();
+                                LOG(INFO) << "the generated id is " << txn.txn_id;
+                            }
+                            auto res = txn.execute();
+                            if (res == TransactionResult::READY_TO_COMMIT) {
                                 executor->_ready_commit_queue->push(txn);
                                 LOG(INFO) << "transaction " << txn.txn_id << " is to commit!";
                             } else {
-                                txn.status = TransactionResult::ABORT;
                                 executor->_ready_execute_queue->push(txn);
-                                // LOG(INFO) << "transaction " << txn.txn_id << " is to re-execute!";
+                                LOG(INFO) << "transaction " << txn.txn_id << " is to re-execute!";
                             }
                         },
                         *txn, this);
@@ -146,15 +99,16 @@ public:
         bt.detach();
     }
 
-    void main_thread(ThreadPool& tp, SafeQuene<TwoPLTransaction>* queue) {
+    void main_thread(ThreadPool& tp, SafeQueue<Transaction>* queue) {
         while (true) {
-            std::shared_ptr<TwoPLTransaction> txn = queue->pop();
+            std::shared_ptr<Transaction> txn = queue->pop();
             if (txn) {
                 tp.enqueue(
-                    [](TwoPLTransaction txn, TwoPLExecutor* executor) {
+                    [](Transaction txn, TwoPLExecutor* executor) {
                         if (executor->commit_txn(txn)) {
                             txn.status = TransactionResult::COMMIT;
                             LOG(INFO) << "transaction " << txn.txn_id << " has committed!";
+                            std::cout << txn.txn_id << "->";
                         } else {
                             txn.status = TransactionResult::ABORT_NORETRY;
                             LOG(INFO) << "transaction " << txn.txn_id << " has aborted with no try!";
