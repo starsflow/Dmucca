@@ -18,7 +18,6 @@ public:
         YContext _context;
         YRandom _random(std::chrono::system_clock::now().time_since_epoch().count());
 
-        std::cout << _context.keysPerTable << std::endl;
         for(std::size_t i = 0; i < _context.keysPerTable; i++) {
             YKey key;
             key.Y_KEY = i;

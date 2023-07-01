@@ -29,6 +29,7 @@ public:
 
     void generate_workload_thread(std::size_t txn_num) {
         std::thread bt_thread([this, txn_num]() {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
             for (size_t i = 0; i < txn_num; i++) {
                 auto p = this->next_transaction();
                 p->insert_queue(_queue);

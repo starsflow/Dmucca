@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
     std::string root_path(argv[1]);
     std::string log_path(root_path + "/log/tpl_");
     google::InitGoogleLogging(argv[0]);
-    google::SetLogDestination(google::INFO, log_path.c_str());
+    google::SetLogDestination(google::WARNING, log_path.c_str());
     signal(SIGINT, signal_handler);
 
     // initialize the database and table
@@ -34,15 +34,16 @@ int main(int argc, char* argv[]) {
     // table->print_table();
 
     // initialize the task queue
-    auto* execute_queue = new SafeQueue<YTransaction<TwoPLTransaction>>();
-    auto* commit_queue = new SafeQueue<YTransaction<TwoPLTransaction>>();
+    using ProtocolType = TwoPLTransaction;
+    auto* execute_queue = new SafeQueue<YTransaction<ProtocolType>>();
+    auto* commit_queue = new SafeQueue<YTransaction<ProtocolType>>();
 
     //generate workload
-    auto workload = YWorkload<TwoPLTransaction>(db, execute_queue);
-    workload.generate_workload_thread(10000);
+    auto workload = YWorkload<ProtocolType>(db, execute_queue);
+    workload.generate_workload_thread(50000);
 
     //start tpl server
-    TwoPL<YWorkload<TwoPLTransaction>::TransactionType> tpl(db, execute_queue, commit_queue);
+    TwoPL<YWorkload<ProtocolType>::TransactionType> tpl(db, execute_queue, commit_queue);
     tpl.run();
 
     return 0;

@@ -14,7 +14,7 @@ class Database;
 
 class ITable {
 public:
-    using MetaType = std::atomic<uint32_t>;
+    using MetaType = std::atomic<uint64_t>;
 
     virtual void* search_value(void* key) = 0;
 
@@ -40,7 +40,7 @@ public:
 template <class KeyType, class ValueType>
 class Table : public ITable {
 public:
-    using MetaType = std::atomic<uint32_t>;
+    using MetaType = std::atomic<uint64_t>;
 
     Table(Database *db, std::size_t table_id)
         : _db(db), _table_id(table_id){}

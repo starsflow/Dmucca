@@ -26,6 +26,9 @@ public:
     YQuery() : _context(), _random(std::chrono::system_clock::now().time_since_epoch().count()) {
         keys_per_transaction = _context.keysPerTransaction;
         keys_per_table = _context.keysPerTable;
+
+        this->UPDATE.clear();
+        this->Y_KEY.clear();
         int readOnly = _random.uniform_dist(1, 100);
         std::unordered_set<std::size_t> keys;
         Zipf::globalZipf().init(keys_per_table, _context.zipfFactor);
@@ -63,4 +66,15 @@ public:
     }
 
     YQuery reset_query() { return YQuery(); }
+    
+    friend std::ostream& operator<<(std::ostream& os, YQuery& query) {
+        for(std::size_t i = 0; i < query.keys_per_transaction; i++) {
+            if(query.UPDATE[i])
+                os << "w:";
+            else 
+                os << "r:";
+            os << query.Y_KEY[i] << ";";
+        }
+        return os;
+    }
 };

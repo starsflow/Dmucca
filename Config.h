@@ -11,4 +11,4 @@
 #define NO_WAIT 0
 #define WAIT_DIE 1
 
-#define THREAD_CNT 4
+#define THREAD_CNT 16

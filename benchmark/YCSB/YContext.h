@@ -12,11 +12,11 @@ enum class YCSBSkewPattern { BOTH, READ, WRITE };
 class YContext {
 public:
     YCSBSkewPattern skewPattern = YCSBSkewPattern::BOTH;
-    int readWriteRatio = 0;            // out of 100
-    int readOnlyTransaction = 0;       //  out of 100
-    bool isUniform = true;
-    double zipfFactor = 2;
+    int readWriteRatio = 50;            // out of 100
+    int readOnlyTransaction = 5;       //  out of 100
+    bool isUniform = false;
+    double zipfFactor = 0.5;
 
-    std::size_t keysPerTransaction = 3;
-    std::size_t keysPerTable = 100;
+    std::size_t keysPerTransaction = 10;
+    std::size_t keysPerTable = 10000;
 };

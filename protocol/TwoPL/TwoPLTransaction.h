@@ -56,11 +56,11 @@ public:
     }
 
     template <class KeyType, class ValueType>
-    ValueType append_read_set(std::uint32_t table_id, KeyType& key) {
+    ValueType append_read_set(std::uint32_t table_id, KeyType key) {
         KeyType* new_key = new KeyType(key);
         RWItem* read_item = get_read_write_item<KeyType>(read_set, new_key);
         RWItem* write_item = get_read_write_item<KeyType>(read_set, new_key);
-
+        LOG(INFO) << (write_item == nullptr);
         if (write_item) {
             auto* new_value = new ValueType(*static_cast<ValueType*>(write_item->value));
             if (read_item) {
@@ -81,7 +81,7 @@ public:
     }
 
     template <class KeyType, class ValueType>
-    void append_write_set(std::uint32_t table_id, KeyType& key, ValueType& value) {
+    void append_write_set(std::uint32_t table_id, KeyType key, ValueType value) {
         KeyType* new_key = new KeyType(key);
         ValueType* new_value = new ValueType(value);
         RWItem* write_item = get_read_write_item<KeyType>(write_set, new_key);
@@ -95,18 +95,18 @@ public:
     void release_read_write_locks(std::vector<RWItem> set, bool is_read_lock) {
         for (auto item : set) {
             ITable* table = get_table(item.table_id);
-            is_read_lock ? TwoPLHelper::resize_read_lock_number_bits(table, item.key, false)
-                         : TwoPLHelper::reset_write_lock_bit(table, item.key);
+            is_read_lock ? TwoPLHelper::release_read_lock_bits(table, item.key)
+                         : TwoPLHelper::release_write_lock_bits(table, item.key);
         }
         set.clear();
     }
 
     template <class KeyType, class ValueType>
-    std::pair<bool, ValueType> read(std::uint32_t table_id, KeyType& key) {
+    std::pair<bool, ValueType> read(std::uint32_t table_id, KeyType key) {
         // request locks
         auto* new_key = new KeyType(key);
         auto* table = get_table(table_id);
-        bool can_read_locked = TwoPLHelper::set_read_lock_bit(table, new_key, txn_id);
+        bool can_read_locked = TwoPLHelper::set_read_lock_bits(table, new_key, txn_id);
         if (!can_read_locked) {
             LOG(INFO) << key << " has not be locked";
             release_read_write_locks(read_set, true);
@@ -119,11 +119,11 @@ public:
     }
 
     template <class KeyType, class ValueType>
-    bool update(std::uint32_t table_id, KeyType& key, ValueType& value) {
+    bool update(std::uint32_t table_id, KeyType key, ValueType value) {
         // request locks
         auto* table = get_table(table_id);
         auto* new_key = new KeyType(key);
-        bool can_write_locked = TwoPLHelper::set_write_lock_bit(table, new_key, txn_id);
+        bool can_write_locked = TwoPLHelper::set_write_lock_bits(table, new_key, txn_id);
         if (!can_write_locked) {
             LOG(INFO) << key << " has not be locked";
             release_read_write_locks(read_set, true);

@@ -39,6 +39,7 @@ CMakeFiles/
 .idea/
 .cache/
 .clang-format
+.VSCodeCounter/
 googletest/
 external/
 test*
