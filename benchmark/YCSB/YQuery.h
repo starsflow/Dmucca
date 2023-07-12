@@ -10,6 +10,7 @@
 #include "YRandom.h"
 #include "YTable.h"
 #include "Zipf.h"
+#include "Time.h"
 
 class YQuery {
 public:
@@ -23,7 +24,7 @@ private:
     YRandom _random;
 
 public:
-    YQuery() : _context(), _random(std::chrono::system_clock::now().time_since_epoch().count()) {
+    YQuery() : _context(), _random(Time::now()) {
         keys_per_transaction = _context.keysPerTransaction;
         keys_per_table = _context.keysPerTable;
 

@@ -8,6 +8,7 @@
 #include "Config.h"
 #include "Database.h"
 #include "Global.h"
+#include "Time.h"
 #include "SafeQueue.h"
 #include "Table.h"
 #include "ThreadPool.h"
@@ -81,9 +82,7 @@ public:
                     if (!is_first) {
                         is_first = true;
                         LOG(WARNING) << "start time : "
-                                     << std::chrono::duration_cast<std::chrono::milliseconds>(
-                                            std::chrono::system_clock::now().time_since_epoch())
-                                            .count();
+                                     << Time::now();
                     }
                     tp.enqueue(
                         [](Transaction txn, TwoPLExecutor* executor) {
@@ -118,10 +117,7 @@ public:
                             txn.status = TransactionResult::COMMIT;
                             LOG(INFO) << "transaction " << txn.txn_id << " has committed!";
                             std::cout << "transaction " << txn.txn_id << " has committed at time : "
-                                      << std::chrono::duration_cast<std::chrono::milliseconds>(
-                                             std::chrono::system_clock::now().time_since_epoch())
-                                             .count()
-                                      << std::endl;
+                                      << Time::now() << std::endl;
                             // std::cout << txn.txn_id << "->";
                         } else {
                             txn.status = TransactionResult::ABORT_NORETRY;

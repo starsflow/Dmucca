@@ -11,12 +11,13 @@
 #include "YContext.h"
 #include "YSchema.h"
 #include "Database.h"
+#include "Time.h"
 
 class YTable : public Table<YKey, YValue> {
 public:
     void initialize_table(){
         YContext _context;
-        YRandom _random(std::chrono::system_clock::now().time_since_epoch().count());
+        YRandom _random(Time::now());
 
         for(std::size_t i = 0; i < _context.keysPerTable; i++) {
             YKey key;

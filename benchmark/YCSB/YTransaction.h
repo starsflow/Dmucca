@@ -11,6 +11,7 @@
 #include "YRandom.h"
 #include "YSchema.h"
 #include "YTable.h"
+#include "Time.h"
 
 template <class Transaction>
 class YTransaction : public Transaction {
@@ -25,7 +26,7 @@ public:
     virtual ~YTransaction() = default;
 
     YTransaction(Database* db)
-        : Transaction(db), random(std::chrono::system_clock::now().time_since_epoch().count()), query() {}
+        : Transaction(db), random(Time::now()), query() {}
 
     void insert_queue(SafeQueue<YTransaction<Transaction>>* queue) { queue->push(*this); }
 

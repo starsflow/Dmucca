@@ -42,7 +42,7 @@
     public:                                                                        \
         keyfields(STRUCT_LAYOUT_X, STRUCT_LAYOUT_X) keyname() {}                   \
         keyname(keyfields(STRUCT_PARAM_FIRST_X, STRUCT_PARAM_REST_X))              \
-            : keyfields(STRUCT_INITLIST_FIRST_X, STRUCT_INITLIST_REST_X()) {}      \
+            : keyfields(STRUCT_INITLIST_FIRST_X, STRUCT_INITLIST_REST_X) {}      \
                                                                                    \
         bool operator==(keyname other) const {                                     \
             APPLY_X_AND_Y(keyfields, STRUCT_EQ_X)                                  \

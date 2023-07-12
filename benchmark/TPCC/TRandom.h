@@ -10,6 +10,8 @@
 
 class TRandom : public Random {
 public:
+    TRandom(uint64_t seed) : Random(seed) {};
+
     uint64_t non_uniform_distribution(uint64_t A, uint64_t x, uint64_t y) {
         return (uniform_dist(0, A) | uniform_dist(x, y)) % (y - x + 1) + x;
     }

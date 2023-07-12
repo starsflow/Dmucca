@@ -8,11 +8,13 @@
 enum class TPCCWorkloadType { NEW_ORDER_ONLY, PAYMENT_ONLY, MIXED };
 
 class TContext {
+public:
     TPCCWorkloadType workloadType = TPCCWorkloadType::NEW_ORDER_ONLY;
 
-    int n_district = 10;
-    int newOrderCrossPartitionProbability = 10;  // out of 100
-    int paymentCrossPartitionProbability = 15;   // out of 100
+    int w = 3;
+    int w_ytd = 30000;
+    int o_id_cnt = 100000;
+    int i_cnt = 100000;
 
     bool write_to_w_ytd = true;
     bool payment_look_up = false;
